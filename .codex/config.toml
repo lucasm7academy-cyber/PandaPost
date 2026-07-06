@@ -1,0 +1,22 @@
+[mcp_servers.herd]
+args = ["/Applications/Herd.app/Contents/Resources/herd-mcp.phar"]
+command = "php"
+
+[mcp_servers.herd.env]
+SITE_PATH = "/Users/paulocastellano/Code/trypost"
+
+[mcp_servers.laravel-boost]
+args = [
+    "artisan",
+    "boost:mcp",
+]
+command = "php"
+
+[mcp_servers.nightwatch]
+url = "https://nightwatch.laravel.com/mcp"
+
+[shell_environment_policy]
+inherit = "core"
+
+[shell_environment_policy.set]
+PATH = 'C:\Laragon\bin\php\php-8.3.30-Win32-vs16-x64;C:\Laragon\bin\apache\bin;C:\Laragon\bin\mysql\bin;$PATH'

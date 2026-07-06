@@ -1,0 +1,44 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services\Social\Concerns;
+
+use App\Models\PostPlatform;
+use App\Services\Social\TokenRedactor;
+use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Support\Facades\Http;
+
+trait HasSocialHttpClient
+{
+    protected function validateContentLength(PostPlatform $postPlatform): void
+    {
+        $content = $postPlatform->post->content ?? '';
+
+        if ($postPlatform->platform->contentOverflow($content) === 0) {
+            return;
+        }
+
+        $maxLength = $postPlatform->platform->maxContentLength();
+        $contentLength = mb_strlen($content);
+
+        throw new \Exception(
+            "Content exceeds {$postPlatform->platform->label()} limit of {$maxLength} characters ({$contentLength} provided)."
+        );
+    }
+
+    protected function socialHttp(): PendingRequest
+    {
+        return Http::retry(
+            times: 3,
+            sleepMilliseconds: 5000,
+            when: fn ($exception, $request) => $exception->response?->status() === 429,
+            throw: false,
+        )->timeout(120);
+    }
+
+    protected function redactResponseBody(string $body): string
+    {
+        return TokenRedactor::redact($body);
+    }
+}

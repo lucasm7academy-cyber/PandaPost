@@ -1,0 +1,26 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Actions\Workspace;
+
+use App\Jobs\PostHog\SyncAccountUsage;
+use App\Models\User;
+use App\Models\Workspace;
+use App\Services\PostHogService;
+
+class DeleteWorkspace
+{
+    public static function execute(User $user, Workspace $workspace): void
+    {
+        User::where('current_workspace_id', $workspace->id)->update(['current_workspace_id' => null]);
+
+        $accountId = (string) $workspace->account_id;
+
+        $workspace->delete();
+
+        if (PostHogService::isEnabled()) {
+            SyncAccountUsage::dispatch($accountId, null);
+        }
+    }
+}

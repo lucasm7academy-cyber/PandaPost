@@ -1,0 +1,113 @@
+<?php
+
+return [
+    'title' => 'Facturación',
+
+    'upgrade_dialog' => [
+        'title' => 'Actualiza tu plan',
+        'description' => 'Elige un plan que se adapte a tus necesidades.',
+        'current_plan' => 'Plan actual',
+        'current_short' => 'Actual',
+        'current_badge' => 'Actual',
+        'subscribe' => 'Suscribirse',
+        'switch' => 'Cambiar a este plan',
+        'switch_short' => 'Cambiar',
+        'switch_to_yearly' => 'Cambiar a anual',
+        'switch_to_monthly' => 'Cambiar a mensual',
+        'unavailable' => 'No disponible',
+        'reasons' => [
+            'workspace_limit' => 'Has alcanzado el límite de workspaces de tu plan. Actualiza para crear más.',
+            'social_account_limit' => 'Has alcanzado el límite de cuentas sociales de tu plan. Actualiza para conectar más.',
+            'member_limit' => 'Has alcanzado el límite de miembros de tu plan. Actualiza para invitar a más personas.',
+        ],
+    ],
+
+    'subscribe' => [
+        'page_title' => 'Elige tu plan',
+        'eyebrow' => 'Precios',
+        'title' => 'Elige el plan ideal para ti',
+        'description' => 'Elige el plan que te queda. Facturación mensual o anual.',
+        'monthly' => 'Mensual',
+        'yearly' => 'Anual',
+        'per_month' => 'mensual',
+        'per_year' => 'anual',
+        'billed_monthly' => 'Facturado mensualmente',
+        'billed_yearly' => 'Facturado anualmente',
+        'features_included' => 'Qué incluye:',
+        'everything_in' => 'Todo lo de :plan, más:',
+        'save_months' => '2 meses gratis',
+        'popular' => 'Más popular',
+        'subscribe_cta' => 'Suscribirse',
+        'prices' => [
+            'starter' => ['monthly' => '$19', 'yearly_per_month' => '$16', 'yearly' => '$190'],
+            'plus' => ['monthly' => '$29', 'yearly_per_month' => '$24', 'yearly' => '$290'],
+            'pro' => ['monthly' => '$49', 'yearly_per_month' => '$41', 'yearly' => '$490'],
+            'max' => ['monthly' => '$99', 'yearly_per_month' => '$83', 'yearly' => '$990'],
+        ],
+        'features' => [
+            'social_accounts' => ':count cuentas sociales',
+            'workspaces' => ':count workspaces',
+            'members' => ':count miembros del equipo',
+            'credits' => ':count créditos IA/mes',
+        ],
+        'credit_tooltips' => [
+            'starter' => 'En promedio 150 posts de largo medio + 5 imágenes IA por mes.',
+            'plus' => 'En promedio 300 posts de largo medio + 10 imágenes IA por mes.',
+            'pro' => 'En promedio 700 posts de largo medio + 30 imágenes IA por mes.',
+            'max' => 'En promedio 2.000 posts de largo medio + 100 imágenes IA por mes.',
+        ],
+    ],
+
+    'plan' => [
+        'title' => 'Plan',
+        'description' => 'Gestiona tu plan de suscripción.',
+        'change' => 'Cambiar plan',
+        'label' => 'Plan',
+        'price' => 'Precio',
+        'month' => 'mes',
+        'trial' => 'Prueba',
+        'active' => 'Activo',
+        'past_due' => 'Vencido',
+        'cancelling' => 'Cancelando',
+        'trial_ends' => 'La prueba termina en',
+    ],
+
+    'subscription' => [
+        'title' => 'Suscripción',
+        'description' => 'Gestiona tu método de pago, datos de facturación y suscripción.',
+        'payment_method' => 'Método de pago',
+        'no_payment_method' => 'Aún no hay método de pago registrado.',
+        'expires_on' => 'Vence el :month/:year',
+        'manage_label' => 'Suscripción',
+        'manage_stripe' => 'Gestionar en Stripe',
+    ],
+
+    'invoices' => [
+        'title' => 'Facturas',
+        'description' => 'Descarga tus facturas anteriores.',
+        'empty' => 'No se encontraron facturas',
+        'paid' => 'Pagado',
+    ],
+
+    'flash' => [
+        'plan_changed' => 'Ahora estás en el plan :plan.',
+        'cannot_manage' => 'Solo el propietario de la cuenta puede gestionar la facturación.',
+        'cannot_downgrade' => [
+            'workspaces' => 'No puedes cambiar a :plan: tienes :count workspaces pero el plan solo permite :limit.',
+            'social_accounts' => 'No puedes cambiar a :plan: tienes :count cuentas sociales pero el plan solo permite :limit.',
+            'members' => 'No puedes cambiar a :plan: tienes :count miembros (incluyendo invitaciones) pero el plan solo permite :limit.',
+        ],
+        'credits_exhausted' => 'Sin créditos de IA — has usado tus :limit créditos mensuales. Mejora tu plan o espera hasta el próximo mes.',
+    ],
+
+    'processing' => [
+        'page_title' => 'Procesando...',
+        'title' => 'Procesando tu suscripción',
+        'description' => 'Espera mientras configuramos tu cuenta. Solo tomará un momento.',
+        'success_title' => '¡Todo listo!',
+        'success_description' => 'Tu suscripción está activa. Redirigiendo a tus workspaces...',
+        'cancelled_title' => 'Pago cancelado',
+        'cancelled_description' => 'Tu pago fue cancelado. No se realizaron cargos.',
+        'retry' => 'Intentar de nuevo',
+    ],
+];

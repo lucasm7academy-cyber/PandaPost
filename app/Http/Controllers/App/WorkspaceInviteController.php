@@ -1,0 +1,210 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Controllers\App;
+
+use App\Actions\Invite\CreateInvite;
+use App\Actions\Invite\DeleteInvite;
+use App\Actions\Invite\RemoveMember;
+use App\Enums\UserWorkspace\Role as WorkspaceRole;
+use App\Http\Requests\App\Invite\StoreWorkspaceInviteRequest;
+use App\Models\Invite;
+use App\Models\Workspace;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Inertia\Inertia;
+use Inertia\Response;
+
+class WorkspaceInviteController extends Controller
+{
+    public function requests(Request $request): Response
+    {
+        $user = $request->user();
+
+        $invites = Invite::query()
+            ->where('email', $user->email)
+            ->whereNull('accepted_at')
+            ->with(['account', 'invitedBy'])
+            ->latest()
+            ->get()
+            ->map(function (Invite $invite) {
+                $workspaceId = data_get($invite->workspaces, 0);
+                $workspace = $workspaceId ? Workspace::find($workspaceId) : null;
+                $role = $invite->role ?? WorkspaceRole::Member;
+
+                return [
+                    'id' => $invite->id,
+                    'email' => $invite->email,
+                    'created_at' => $invite->created_at,
+                    'account' => [
+                        'id' => $invite->account?->id,
+                        'name' => $invite->account?->name,
+                    ],
+                    'workspace' => $workspace ? [
+                        'id' => $workspace->id,
+                        'name' => $workspace->name,
+                    ] : null,
+                    'role' => [
+                        'value' => $role->value,
+                        'label' => $role->label(),
+                    ],
+                    'invited_by' => [
+                        'id' => $invite->invitedBy?->id,
+                        'name' => $invite->invitedBy?->name,
+                        'email' => $invite->invitedBy?->email,
+                    ],
+                ];
+            })
+            ->values();
+
+        return Inertia::render('app/invites/Requests', [
+            'invites' => $invites,
+        ]);
+    }
+
+    public function index(Request $request): Response|RedirectResponse
+    {
+        $workspace = $request->user()->currentWorkspace;
+
+        if (! $workspace) {
+            return redirect()->route('app.workspaces.create');
+        }
+
+        $this->authorize('manageTeam', $workspace);
+
+        return Inertia::render('settings/workspace/Members', [
+            'workspace' => $workspace,
+            'invites' => $workspace->invites()
+                ->latest()
+                ->get(),
+            'members' => $workspace->members()
+                ->get()
+                ->map(fn ($member) => [
+                    'id' => $member->id,
+                    'name' => $member->name,
+                    'email' => $member->email,
+                    'role' => $member->pivot->role,
+                ]),
+            'owner' => [
+                'id' => $workspace->account?->owner?->id,
+                'name' => $workspace->account?->owner?->name,
+                'email' => $workspace->account?->owner?->email,
+            ],
+            'roles' => collect(WorkspaceRole::cases())
+                ->map(fn ($role) => [
+                    'value' => $role->value,
+                    'label' => $role->label(),
+                ])->values(),
+        ]);
+    }
+
+    public function store(StoreWorkspaceInviteRequest $request): RedirectResponse
+    {
+        $workspace = $request->user()->currentWorkspace;
+
+        if (! $workspace) {
+            return redirect()->route('app.workspaces.create');
+        }
+
+        $this->authorize('inviteMember', $workspace);
+
+        $existingInvite = $workspace->invites()
+            ->where('email', $request->email)
+            ->first();
+
+        if ($existingInvite) {
+            return back()->withErrors([
+                'email' => 'An invite already exists for this email.',
+            ]);
+        }
+
+        if ($workspace->members()->where('email', $request->email)->exists()) {
+            return back()->withErrors([
+                'email' => 'This user is already a member of the workspace.',
+            ]);
+        }
+
+        CreateInvite::execute($workspace, $request->validated());
+
+        session()->flash('flash.banner', __('settings.members.flash.invite_sent'));
+        session()->flash('flash.bannerStyle', 'success');
+
+        return back();
+    }
+
+    public function destroy(Request $request, Invite $invite): RedirectResponse
+    {
+        $workspace = $request->user()->currentWorkspace;
+
+        if (! $workspace) {
+            return redirect()->route('app.workspaces.create');
+        }
+
+        $this->authorize('manageTeam', $workspace);
+
+        if ($invite->account_id !== $workspace->account_id) {
+            abort(404);
+        }
+
+        DeleteInvite::execute($invite);
+
+        session()->flash('flash.banner', __('settings.members.flash.invite_deleted'));
+        session()->flash('flash.bannerStyle', 'success');
+
+        return back();
+    }
+
+    public function removeMember(Request $request, string $userId): RedirectResponse
+    {
+        $workspace = $request->user()->currentWorkspace;
+
+        if (! $workspace) {
+            return redirect()->route('app.workspaces.create');
+        }
+
+        $this->authorize('manageTeam', $workspace);
+
+        // Account owner cannot be removed
+        if ($userId === $workspace->account?->owner_id) {
+            return back()->withErrors(['member' => 'Cannot remove the account owner.']);
+        }
+
+        RemoveMember::execute($workspace, $userId);
+
+        session()->flash('flash.banner', __('settings.members.flash.member_removed'));
+        session()->flash('flash.bannerStyle', 'success');
+
+        return back();
+    }
+
+    public function updateRole(Request $request, string $userId): RedirectResponse
+    {
+        $workspace = $request->user()->currentWorkspace;
+
+        if (! $workspace) {
+            return redirect()->route('app.workspaces.create');
+        }
+
+        $this->authorize('manageTeam', $workspace);
+
+        // Account owner's role cannot be changed
+        if ($userId === $workspace->account?->owner_id) {
+            return back()->withErrors(['role' => 'Cannot change the account owner role.']);
+        }
+
+        $validated = $request->validate([
+            'role' => ['required', Rule::in(array_column(WorkspaceRole::cases(), 'value'))],
+        ]);
+
+        $workspace->members()->updateExistingPivot($userId, [
+            'role' => data_get($validated, 'role'),
+        ]);
+
+        session()->flash('flash.banner', __('settings.members.flash.role_updated'));
+        session()->flash('flash.bannerStyle', 'success');
+
+        return back();
+    }
+}

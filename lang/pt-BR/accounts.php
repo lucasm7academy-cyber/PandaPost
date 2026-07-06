@@ -1,0 +1,149 @@
+<?php
+
+return [
+    'title' => 'Conexões',
+    'page_title' => 'Contas Sociais',
+    'description' => 'Visão geral de todas as suas contas sociais conectadas',
+    'add_social' => 'Adicionar Rede Social',
+    'add_social_title' => 'Conectar uma Conta Social',
+    'add_social_description' => 'Conecte uma conta social ao TryPost para começar a publicar',
+    'connect_cta' => 'Conectar',
+    'no_accounts' => 'Nenhuma conta conectada ainda',
+    'no_accounts_description' => 'Conecte suas redes sociais para começar a agendar e publicar posts',
+    'no_search_results' => 'Nenhuma conta corresponde à sua busca',
+    'try_different_search' => 'Tente outra palavra-chave ou limpe a busca.',
+    'search' => 'Buscar contas...',
+    'added' => 'Adicionada :date',
+
+    'limit_reached' => 'Você atingiu o limite de contas sociais do seu plano.',
+
+    'not_connected' => 'Não conectado',
+    'connect' => 'Conectar',
+    'connection_lost' => 'Conexão perdida',
+    'reconnect_account' => 'Reconectar conta',
+    'view_profile' => 'Ver perfil',
+    'disconnect' => 'Desconectar',
+
+    'table' => [
+        'account' => 'Conta',
+        'platform' => 'Plataforma',
+        'status' => 'Status',
+        'last_used' => 'Último uso',
+        'added' => 'Adicionada',
+        'active' => 'Ativa',
+    ],
+    'never_used' => 'Nunca usada',
+    'status' => [
+        'connected' => 'Conectada',
+        'disconnected' => 'Desconectada',
+    ],
+
+    'descriptions' => [
+        'linkedin' => 'Conecte seu perfil pessoal do LinkedIn',
+        'linkedin-page' => 'Conecte uma página de empresa do LinkedIn',
+        'x' => 'Conecte sua conta do X (Twitter)',
+        'tiktok' => 'Conecte sua conta do TikTok',
+        'youtube' => 'Conecte um canal do YouTube para Shorts',
+        'youtube-long' => 'Conecte um canal do YouTube para Vídeos',
+        'facebook' => 'Conecte uma página do Facebook',
+        'instagram' => 'Conecte uma conta profissional do Instagram',
+        'instagram-facebook' => 'Conecte Instagram via página do Facebook',
+        'threads' => 'Conecte sua conta do Threads',
+        'pinterest' => 'Conecte sua conta do Pinterest',
+        'bluesky' => 'Conecte sua conta do Bluesky',
+        'mastodon' => 'Conecte sua conta do Mastodon',
+    ],
+
+    'disconnect_modal' => [
+        'title' => 'Desconectar Conta',
+        'description' => 'Tem certeza que deseja desconectar esta conta? Você pode reconectá-la a qualquer momento.',
+        'confirm' => 'Desconectar',
+        'cancel' => 'Cancelar',
+    ],
+
+    'bluesky' => [
+        'title' => 'Conectar Bluesky',
+        'description' => 'Digite suas credenciais para conectar',
+        'email' => 'E-mail',
+        'email_placeholder' => 'seuhandle.bsky.social',
+        'app_password' => 'Senha do App',
+        'app_password_placeholder' => 'xxxx-xxxx-xxxx-xxxx',
+        'app_password_hint' => 'Use uma <strong>Senha do App</strong> por segurança. Crie uma em <a href="https://bsky.app/settings/app-passwords" target="_blank" class="underline">bsky.app/settings</a>.',
+        'submit' => 'Conectar Bluesky',
+        'submitting' => 'Conectando...',
+    ],
+
+    'mastodon' => [
+        'title' => 'Conectar Mastodon',
+        'description' => 'Digite a instância do seu Mastodon',
+        'instance_url' => 'URL da Instância',
+        'instance_placeholder' => 'https://mastodon.social',
+        'instance_hint' => 'Digite a URL da sua instância Mastodon (ex: mastodon.social, techhub.social)',
+        'submit' => 'Continuar com Mastodon',
+        'submitting' => 'Conectando...',
+    ],
+
+    'facebook' => [
+        'title' => 'Selecionar Página do Facebook',
+        'description' => 'Escolha qual página você deseja conectar',
+        'no_pages' => 'Nenhuma página encontrada',
+        'no_pages_description' => 'Você não é administrador de nenhuma página do Facebook.',
+        'page_label' => 'Página do Facebook',
+    ],
+
+    'instagram_facebook' => [
+        'title' => 'Selecionar Conta do Instagram',
+        'description' => 'Escolha qual conta do Instagram você deseja conectar',
+        'no_pages' => 'Nenhuma conta do Instagram encontrada',
+        'no_pages_description' => 'Nenhuma Página do Facebook com conta Instagram Business vinculada foi encontrada.',
+    ],
+
+    'linkedin' => [
+        'title' => 'Selecionar Página do LinkedIn',
+        'description' => 'Escolha qual página você deseja conectar',
+        'no_pages' => 'Nenhuma página encontrada',
+        'no_pages_description' => 'Você não é administrador de nenhuma página do LinkedIn.',
+        'page_label' => 'Página do LinkedIn',
+    ],
+
+    'youtube' => [
+        'title' => 'Selecionar Canal do YouTube',
+        'description' => 'Escolha qual canal você deseja conectar',
+        'no_channels' => 'Nenhum canal encontrado',
+        'no_channels_description' => 'Você não tem nenhum canal do YouTube. Por favor, crie um canal primeiro.',
+    ],
+
+    'flash' => [
+        'disconnected' => 'Conta desconectada com sucesso!',
+        'connected' => 'Conta conectada com sucesso!',
+        'session_expired' => 'Sessão expirada. Por favor, tente novamente.',
+        'workspace_not_found' => 'Workspace não encontrado.',
+        'activated' => 'Conta ativada!',
+        'deactivated' => 'Conta desativada!',
+        'already_connected' => 'Esta plataforma já está conectada.',
+        'no_youtube_channels' => 'Nenhum canal do YouTube encontrado. Por favor, crie um canal primeiro.',
+    ],
+
+    'popup_callback' => [
+        'title_success' => 'Conectado',
+        'title_error' => 'Erro',
+        'closing' => 'Esta janela será fechada automaticamente...',
+        'close_now' => 'Você pode fechar esta janela agora.',
+        'connected' => 'Conta conectada!',
+        'reconnected' => 'Conta reconectada!',
+        'error_connecting' => 'Erro ao conectar conta. Por favor, tente novamente.',
+        'error_connecting_page' => 'Erro ao conectar página. Por favor, tente novamente.',
+        'error_connecting_channel' => 'Erro ao conectar canal. Por favor, tente novamente.',
+        'session_expired' => 'Sessão expirada. Por favor, tente novamente.',
+        'workspace_not_found' => 'Workspace não encontrado.',
+        'invalid_state' => 'Estado inválido. Por favor, tente novamente.',
+        'failed_to_authenticate' => 'Falha na autenticação.',
+        'failed_to_get_profile' => 'Falha ao obter perfil.',
+        'page_not_found' => 'Página não encontrada.',
+        'channel_not_found' => 'Canal não encontrado.',
+        'no_facebook_pages' => 'Nenhuma página do Facebook encontrada. Você precisa ser administrador de pelo menos uma página.',
+        'no_facebook_instagram_pages' => 'Nenhuma página do Facebook com conta do Instagram vinculada foi encontrada.',
+        'no_youtube_channels' => 'Nenhum canal do YouTube encontrado. Por favor, crie um canal primeiro.',
+        'not_linkedin_admin' => 'Você não é administrador de nenhuma página do LinkedIn.',
+    ],
+];

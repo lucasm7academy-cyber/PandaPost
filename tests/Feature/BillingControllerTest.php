@@ -1,0 +1,367 @@
+<?php
+
+declare(strict_types=1);
+
+use App\Enums\UserWorkspace\Role;
+use App\Models\Account;
+use App\Models\Plan;
+use App\Models\User;
+use App\Models\Workspace;
+
+beforeEach(function () {
+    $this->account = Account::factory()->create();
+    $this->user = User::factory()->create([
+        'account_id' => $this->account->id,
+    ]);
+    $this->account->update(['owner_id' => $this->user->id]);
+    $this->workspace = Workspace::factory()->create([
+        'account_id' => $this->account->id,
+        'user_id' => $this->user->id,
+    ]);
+    $this->workspace->members()->attach($this->user->id, ['role' => Role::Member->value]);
+    $this->user->update(['current_workspace_id' => $this->workspace->id]);
+});
+
+// Subscribe tests
+test('subscribe requires authentication', function () {
+    $response = $this->get(route('app.subscribe'));
+
+    $response->assertRedirect(route('login'));
+});
+
+test('subscribe shows subscription page', function () {
+    config(['trypost.self_hosted' => false]);
+
+    $response = $this->actingAs($this->user)->get(route('app.subscribe'));
+
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page
+        ->component('billing/Subscribe', false)
+        ->has('plans')
+    );
+});
+
+test('subscribe redirects to billing index when account has active subscription', function () {
+    config(['trypost.self_hosted' => false]);
+
+    $this->account->subscriptions()->create([
+        'type' => Account::SUBSCRIPTION_NAME,
+        'stripe_id' => 'sub_test_'.fake()->uuid(),
+        'stripe_status' => 'active',
+        'stripe_price' => 'price_123',
+    ]);
+
+    $response = $this->actingAs($this->user)->get(route('app.subscribe'));
+
+    $response->assertRedirect(route('app.billing.index'));
+});
+
+test('subscribe redirects to calendar in self hosted mode', function () {
+    config(['trypost.self_hosted' => true]);
+
+    $response = $this->actingAs($this->user)->get(route('app.subscribe'));
+
+    $response->assertRedirect(route('app.calendar'));
+});
+
+// Index tests
+test('billing index requires authentication', function () {
+    $response = $this->get(route('app.billing.index'));
+
+    $response->assertRedirect(route('login'));
+});
+
+test('billing index shows billing dashboard', function () {
+    config(['trypost.self_hosted' => false]);
+
+    $this->account->subscriptions()->create([
+        'type' => Account::SUBSCRIPTION_NAME,
+        'stripe_id' => 'sub_test_'.fake()->uuid(),
+        'stripe_status' => 'active',
+        'stripe_price' => 'price_123',
+    ]);
+
+    $response = $this->actingAs($this->user)->get(route('app.billing.index'));
+
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page
+        ->component('settings/account/Billing', false)
+        ->has('hasSubscription')
+        ->has('plan')
+        ->has('plans')
+    );
+});
+
+test('billing index exposes onTrial=true and trialEndsAt for generic-trial-only account', function () {
+    config(['trypost.self_hosted' => false]);
+
+    $endsAt = now()->addDays(7)->startOfSecond();
+    $this->account->update(['trial_ends_at' => $endsAt]);
+
+    $response = $this->actingAs($this->user->fresh())->get(route('app.billing.index'));
+
+    $response->assertInertia(fn ($page) => $page
+        ->component('settings/account/Billing', false)
+        ->where('hasSubscription', false)
+        ->where('onTrial', true)
+        ->where('trialEndsAt', $endsAt->toIso8601ZuluString('microsecond'))
+    );
+});
+
+test('billing index exposes onTrial=true and trialEndsAt for subscription-trial account', function () {
+    config(['trypost.self_hosted' => false]);
+
+    $subscriptionEndsAt = now()->addDays(5)->startOfSecond();
+    $this->account->subscriptions()->create([
+        'type' => Account::SUBSCRIPTION_NAME,
+        'stripe_id' => 'sub_test_'.fake()->uuid(),
+        'stripe_status' => 'trialing',
+        'stripe_price' => 'price_123',
+        'trial_ends_at' => $subscriptionEndsAt,
+    ]);
+
+    $response = $this->actingAs($this->user->fresh())->get(route('app.billing.index'));
+
+    $response->assertInertia(fn ($page) => $page
+        ->where('hasSubscription', true)
+        ->where('onTrial', true)
+        ->where('trialEndsAt', $subscriptionEndsAt->toIso8601ZuluString('microsecond'))
+    );
+});
+
+test('billing index exposes onTrial=false and trialEndsAt=null for paying subscribed user', function () {
+    config(['trypost.self_hosted' => false]);
+
+    $this->account->subscriptions()->create([
+        'type' => Account::SUBSCRIPTION_NAME,
+        'stripe_id' => 'sub_test_'.fake()->uuid(),
+        'stripe_status' => 'active',
+        'stripe_price' => 'price_123',
+    ]);
+
+    $response = $this->actingAs($this->user->fresh())->get(route('app.billing.index'));
+
+    $response->assertInertia(fn ($page) => $page
+        ->where('hasSubscription', true)
+        ->where('onTrial', false)
+        ->where('trialEndsAt', null)
+    );
+});
+
+test('subscribe page does not expose trialDays prop anymore', function () {
+    config(['trypost.self_hosted' => false]);
+
+    $response = $this->actingAs($this->user)->get(route('app.subscribe'));
+
+    $response->assertInertia(fn ($page) => $page
+        ->component('billing/Subscribe', false)
+        ->missing('trialDays')
+    );
+});
+
+test('billing index redirects to calendar in self hosted mode', function () {
+    config(['trypost.self_hosted' => true]);
+
+    $response = $this->actingAs($this->user)->get(route('app.billing.index'));
+
+    $response->assertRedirect(route('app.calendar'));
+});
+
+// Processing tests
+test('billing processing requires authentication', function () {
+    $response = $this->get(route('app.billing.processing'));
+
+    $response->assertRedirect(route('login'));
+});
+
+test('billing processing shows processing page', function () {
+    config(['trypost.self_hosted' => false]);
+
+    $response = $this->actingAs($this->user)->get(route('app.billing.processing'));
+
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page
+        ->component('billing/Processing', false)
+        ->has('subscriptionActive')
+        ->where('conversion', null)
+    );
+});
+
+test('billing processing exposes null conversion when session_id query param is missing', function () {
+    config(['trypost.self_hosted' => false]);
+
+    $response = $this->actingAs($this->user)
+        ->get(route('app.billing.processing', ['session_id' => '']));
+
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page->where('conversion', null));
+});
+
+test('billing processing exposes null conversion when account has no stripe_id', function () {
+    config(['trypost.self_hosted' => false]);
+
+    expect($this->account->stripe_id)->toBeNull();
+
+    $response = $this->actingAs($this->user)
+        ->get(route('app.billing.processing', ['session_id' => 'cs_test_123']));
+
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page->where('conversion', null));
+});
+
+test('shared auth.plan exposes name slug and interval via AuthPlanResource', function () {
+    config(['trypost.self_hosted' => false]);
+
+    $plan = Plan::where('slug', 'pro')->firstOrFail();
+    $this->account->update(['plan_id' => $plan->id]);
+
+    $response = $this->actingAs($this->user->fresh())->get(route('app.billing.processing'));
+
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page
+        ->where('auth.plan.name', 'Pro')
+        ->where('auth.plan.slug', 'pro')
+        ->where('auth.plan.interval', 'monthly')
+    );
+});
+
+test('billing processing redirects to calendar in self hosted mode', function () {
+    config(['trypost.self_hosted' => true]);
+
+    $response = $this->actingAs($this->user)->get(route('app.billing.processing'));
+
+    $response->assertRedirect(route('app.calendar'));
+});
+
+// Checkout tests
+test('checkout requires authentication', function () {
+    $plan = Plan::first();
+    $response = $this->post(route('app.billing.checkout', $plan));
+
+    $response->assertRedirect(route('login'));
+});
+
+// Portal tests
+test('portal requires authentication', function () {
+    $response = $this->get(route('app.billing.portal'));
+
+    $response->assertRedirect(route('login'));
+});
+
+// Authorization tests
+test('non-owner admin cannot access billing index', function () {
+    config(['trypost.self_hosted' => false]);
+
+    $admin = User::factory()->create([
+        'account_id' => $this->account->id,
+    ]);
+    $this->workspace->members()->attach($admin->id, ['role' => Role::Admin->value]);
+    $admin->update(['current_workspace_id' => $this->workspace->id]);
+
+    $this->account->subscriptions()->create([
+        'type' => Account::SUBSCRIPTION_NAME,
+        'stripe_id' => 'sub_test_'.fake()->uuid(),
+        'stripe_status' => 'active',
+        'stripe_price' => 'price_123',
+    ]);
+
+    $this->actingAs($admin)->get(route('app.billing.index'))->assertForbidden();
+});
+
+test('member cannot access billing index', function () {
+    config(['trypost.self_hosted' => false]);
+
+    $member = User::factory()->create([
+        'account_id' => $this->account->id,
+    ]);
+    $this->workspace->members()->attach($member->id, ['role' => Role::Member->value]);
+    $member->update(['current_workspace_id' => $this->workspace->id]);
+
+    $this->account->subscriptions()->create([
+        'type' => Account::SUBSCRIPTION_NAME,
+        'stripe_id' => 'sub_test_'.fake()->uuid(),
+        'stripe_status' => 'active',
+        'stripe_price' => 'price_123',
+    ]);
+
+    $this->actingAs($member)->get(route('app.billing.index'))->assertForbidden();
+});
+
+// Swap tests
+test('swap blocks downgrade when usage exceeds target plan limits', function () {
+    config(['trypost.self_hosted' => false]);
+
+    $currentPlan = Plan::where('slug', 'plus')->first();
+    $currentPlan->update([
+        'stripe_monthly_price_id' => 'price_current_monthly',
+        'stripe_yearly_price_id' => 'price_current_yearly',
+    ]);
+    $this->account->update(['plan_id' => $currentPlan->id]);
+
+    $this->account->subscriptions()->create([
+        'type' => Account::SUBSCRIPTION_NAME,
+        'stripe_id' => 'sub_test_'.fake()->uuid(),
+        'stripe_status' => 'active',
+        'stripe_price' => 'price_current_monthly',
+    ]);
+
+    Workspace::factory()->count(3)->create([
+        'account_id' => $this->account->id,
+        'user_id' => $this->user->id,
+    ]);
+
+    // Starter: workspace_limit=1
+    $targetPlan = Plan::where('slug', 'starter')->first();
+    $targetPlan->update([
+        'stripe_monthly_price_id' => 'price_target_monthly',
+        'stripe_yearly_price_id' => 'price_target_yearly',
+    ]);
+
+    $this->user->unsetRelation('account');
+
+    $response = $this->actingAs($this->user)
+        ->from(route('app.billing.index'))
+        ->post(route('app.billing.swap', $targetPlan), [
+            'price_id' => 'price_target_monthly',
+        ]);
+
+    $response->assertRedirect(route('app.billing.index'));
+    $response->assertSessionHas('flash.error', __('billing.flash.cannot_downgrade.workspaces', [
+        'plan' => $targetPlan->name,
+        'count' => '4', // 3 created + 1 from beforeEach
+        'limit' => '1',
+    ]));
+});
+
+test('swap rejects invalid price_id for plan', function () {
+    config(['trypost.self_hosted' => false]);
+
+    $plan = Plan::where('slug', 'pro')->first();
+    $plan->update([
+        'stripe_monthly_price_id' => 'price_monthly',
+        'stripe_yearly_price_id' => 'price_yearly',
+    ]);
+
+    $this->account->subscriptions()->create([
+        'type' => Account::SUBSCRIPTION_NAME,
+        'stripe_id' => 'sub_test_'.fake()->uuid(),
+        'stripe_status' => 'active',
+        'stripe_price' => 'price_other',
+    ]);
+
+    $this->user->unsetRelation('account');
+
+    $response = $this->actingAs($this->user)
+        ->post(route('app.billing.swap', $plan), [
+            'price_id' => 'price_unrelated',
+        ]);
+
+    $response->assertStatus(422);
+});
+
+test('swap requires authentication', function () {
+    $plan = Plan::first();
+    $response = $this->post(route('app.billing.swap', $plan));
+
+    $response->assertRedirect(route('login'));
+});

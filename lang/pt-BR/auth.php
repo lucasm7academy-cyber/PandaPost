@@ -18,8 +18,8 @@ return [
     'throttle' => 'Muitas tentativas de login. Por favor, tente novamente em :seconds segundos.',
 
     'flash' => [
-        'welcome' => 'Bem-vindo ao TryPost!',
-        'welcome_trial' => 'Bem-vindo ao TryPost! Seu período de teste começou.',
+        'welcome' => 'Bem-vindo ao PandaPost!',
+        'welcome_trial' => 'Bem-vindo ao PandaPost! Seu período de teste começou.',
     ],
 
     'legal' => 'Ao continuar, você concorda com nossos <a href="/terms" target="_blank" rel="noopener">Termos de Serviço</a> e <a href="/privacy" target="_blank" rel="noopener">Política de Privacidade</a>.',

@@ -88,6 +88,10 @@ class Account extends Model
             return true;
         }
 
+        if ($this->plan?->slug === \App\Enums\Plan\Slug::Unlimited) {
+            return true;
+        }
+
         return $this->subscribed(self::SUBSCRIPTION_NAME);
     }
 

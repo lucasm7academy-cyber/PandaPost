@@ -46,7 +46,12 @@ const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
                 v-slot="{ errors, processing }"
                 class="flex flex-col gap-6"
             >
-                <input v-if="redirect" type="hidden" name="redirect" :value="redirect" />
+                <input
+                    v-if="redirect"
+                    type="hidden"
+                    name="redirect"
+                    :value="redirect"
+                />
                 <input type="hidden" name="timezone" :value="timezone" />
                 <div class="grid gap-6">
                     <div class="grid gap-2">
@@ -64,7 +69,9 @@ const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
                     </div>
 
                     <div class="grid gap-2">
-                        <Label for="email">{{ $t('auth.register.email') }}</Label>
+                        <Label for="email">{{
+                            $t('auth.register.email')
+                        }}</Label>
                         <Input
                             id="email"
                             type="email"
@@ -78,7 +85,9 @@ const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
                     </div>
 
                     <div class="grid gap-2">
-                        <Label for="password">{{ $t('auth.register.password') }}</Label>
+                        <Label for="password">{{
+                            $t('auth.register.password')
+                        }}</Label>
                         <div class="relative">
                             <Input
                                 id="password"
@@ -88,7 +97,9 @@ const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
                                 name="password"
                                 :placeholder="$t('auth.register.password')"
                             />
-                            <div class="absolute inset-y-0 end-0 flex items-center pe-3">
+                            <div
+                                class="absolute inset-y-0 end-0 flex items-center pe-3"
+                            >
                                 <TooltipProvider>
                                     <Tooltip>
                                         <TooltipTrigger as-child>
@@ -96,14 +107,32 @@ const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
                                                 type="button"
                                                 :tabindex="-1"
                                                 class="cursor-pointer text-muted-foreground hover:text-foreground"
-                                                @click="showPassword = !showPassword"
+                                                @click="
+                                                    showPassword = !showPassword
+                                                "
                                             >
-                                                <IconEyeOff v-if="showPassword" class="size-4" />
-                                                <IconEye v-else class="size-4" />
+                                                <IconEyeOff
+                                                    v-if="showPassword"
+                                                    class="size-4"
+                                                />
+                                                <IconEye
+                                                    v-else
+                                                    class="size-4"
+                                                />
                                             </button>
                                         </TooltipTrigger>
                                         <TooltipContent>
-                                            <p>{{ showPassword ? $t('auth.register.hide_password') : $t('auth.register.show_password') }}</p>
+                                            <p>
+                                                {{
+                                                    showPassword
+                                                        ? $t(
+                                                              'auth.register.hide_password',
+                                                          )
+                                                        : $t(
+                                                              'auth.register.show_password',
+                                                          )
+                                                }}
+                                            </p>
                                         </TooltipContent>
                                     </Tooltip>
                                 </TooltipProvider>

@@ -289,3 +289,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('settings/profile/notifications', [NotificationPreferenceController::class, 'edit'])->name('app.notifications.preferences');
     Route::put('settings/profile/notifications', [NotificationPreferenceController::class, 'update'])->name('app.notifications.preferences.update');
 });
+
+Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
+    Route::get('/', [\App\Http\Controllers\App\AdminController::class, 'index'])->name('app.admin.index');
+    Route::post('/trial-days/{account}', [\App\Http\Controllers\App\AdminController::class, 'addTrialDays'])->name('app.admin.add-trial-days');
+    Route::post('/change-plan/{account}', [\App\Http\Controllers\App\AdminController::class, 'changePlan'])->name('app.admin.change-plan');
+});

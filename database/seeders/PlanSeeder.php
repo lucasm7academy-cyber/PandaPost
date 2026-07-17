@@ -60,6 +60,17 @@ class PlanSeeder extends Seeder
                 'monthly_credits_limit' => 15000,
                 'sort' => 4,
             ],
+            [
+                'slug' => Slug::Unlimited,
+                'name' => 'Unlimited',
+                'stripe_monthly_price_id' => null,
+                'stripe_yearly_price_id' => null,
+                'social_account_limit' => 999999,
+                'member_limit' => 999999,
+                'workspace_limit' => 999999,
+                'monthly_credits_limit' => 999999,
+                'sort' => 5,
+            ],
         ];
 
         foreach ($plans as $plan) {

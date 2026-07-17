@@ -23,7 +23,10 @@ import {
 import dayjs from '@/dayjs';
 import debounce from '@/debounce';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { destroy as labelsDestroy, index as labelsIndex } from '@/routes/app/labels';
+import {
+    destroy as labelsDestroy,
+    index as labelsIndex,
+} from '@/routes/app/labels';
 
 interface Label {
     id: string;
@@ -73,7 +76,8 @@ const handleDelete = (label: Label) => {
     });
 };
 
-const formatDate = (date: string): string => dayjs.utc(date).local().format('D MMM YYYY');
+const formatDate = (date: string): string =>
+    dayjs.utc(date).local().format('D MMM YYYY');
 
 const hasActiveSearch = computed(() => Boolean(searchQuery.value?.trim()));
 </script>
@@ -82,37 +86,60 @@ const hasActiveSearch = computed(() => Boolean(searchQuery.value?.trim()));
     <Head :title="$t('labels.title')" />
 
     <AppLayout>
-        <div class="flex h-full flex-1 flex-col gap-6 px-6 py-8">
-            <PageHeader :title="$t('labels.title')" :description="$t('labels.description')" />
+        <div class="flex h-full flex-1 flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8">
+            <PageHeader
+                :title="$t('labels.title')"
+                :description="$t('labels.description')"
+            />
 
-            <div class="flex items-center justify-between gap-3">
-                <div class="relative">
-                    <IconSearch class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="relative w-full sm:w-64">
+                    <IconSearch
+                        class="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+                    />
                     <Input
                         v-model="searchQuery"
                         :placeholder="trans('labels.search')"
-                        class="w-64 pl-9"
+                        class="w-full pl-9"
                     />
                 </div>
 
-                <Button @click="isCreateDialogOpen = true">{{ $t('labels.new_label') }}</Button>
+                <Button class="w-full sm:w-auto" @click="isCreateDialogOpen = true">{{
+                    $t('labels.new_label')
+                }}</Button>
             </div>
 
             <EmptyState
                 v-if="labels.data.length === 0"
                 :icon="IconTag"
-                :title="hasActiveSearch ? $t('labels.no_search_results') : $t('labels.no_labels_yet')"
-                :description="hasActiveSearch ? $t('labels.try_different_search') : $t('labels.description')"
+                :title="
+                    hasActiveSearch
+                        ? $t('labels.no_search_results')
+                        : $t('labels.no_labels_yet')
+                "
+                :description="
+                    hasActiveSearch
+                        ? $t('labels.try_different_search')
+                        : $t('labels.description')
+                "
             />
 
             <div v-else>
-                <InfiniteScroll data="labels" items-element="#labels-body" preserve-url>
+                <InfiniteScroll
+                    data="labels"
+                    items-element="#labels-body"
+                    preserve-url
+                >
                     <Table>
                         <TableHeader>
                             <TableRow>
                                 <TableHead class="w-12" />
-                                <TableHead>{{ $t('labels.table.name') }}</TableHead>
-                                <TableHead>{{ $t('labels.table.created_at') }}</TableHead>
+                                <TableHead>{{
+                                    $t('labels.table.name')
+                                }}</TableHead>
+                                <TableHead class="hidden sm:table-cell">{{
+                                    $t('labels.table.created_at')
+                                }}</TableHead>
                                 <TableHead class="text-right" />
                             </TableRow>
                         </TableHeader>
@@ -126,18 +153,24 @@ const hasActiveSearch = computed(() => Boolean(searchQuery.value?.trim()));
                                 <TableCell>
                                     <div
                                         class="size-6 rounded-md border-2 border-foreground shadow-2xs"
-                                        :style="{ backgroundColor: label.color }"
+                                        :style="{
+                                            backgroundColor: label.color,
+                                        }"
                                     />
                                 </TableCell>
                                 <TableCell>{{ label.name }}</TableCell>
-                                <TableCell>{{ formatDate(label.created_at) }}</TableCell>
+                                <TableCell class="hidden sm:table-cell">{{
+                                    formatDate(label.created_at)
+                                }}</TableCell>
                                 <TableCell class="text-right" @click.stop>
                                     <div class="flex justify-end gap-2">
                                         <Button
                                             variant="outline"
                                             size="icon"
                                             class="size-8"
-                                            :aria-label="$t('labels.actions.edit')"
+                                            :aria-label="
+                                                $t('labels.actions.edit')
+                                            "
                                             @click="openEditDialog(label)"
                                         >
                                             <IconPencil class="size-4" />
@@ -146,10 +179,14 @@ const hasActiveSearch = computed(() => Boolean(searchQuery.value?.trim()));
                                             variant="outline"
                                             size="icon"
                                             class="size-8 bg-rose-100 hover:bg-rose-200"
-                                            :aria-label="$t('labels.actions.delete')"
+                                            :aria-label="
+                                                $t('labels.actions.delete')
+                                            "
                                             @click="handleDelete(label)"
                                         >
-                                            <IconTrash class="size-4 text-rose-700" />
+                                            <IconTrash
+                                                class="size-4 text-rose-700"
+                                            />
                                         </Button>
                                     </div>
                                 </TableCell>

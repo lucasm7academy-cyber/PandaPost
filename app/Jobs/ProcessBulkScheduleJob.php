@@ -65,12 +65,23 @@ class ProcessBulkScheduleJob implements ShouldQueue
                 return;
             }
 
-            $captions = AiCaptionVariations::generate(
-                workspace: $workspace,
-                prompt: $bulkSchedule->prompt,
-                count: $totalPosts,
-                userId: $user->id,
-            );
+            $customCaptions = null;
+            if (!empty($bulkSchedule->prompt)) {
+                $decoded = json_decode($bulkSchedule->prompt, true);
+                if (is_array($decoded)) {
+                    $customCaptions = $decoded;
+                }
+            }
+
+            $captions = [];
+            if ($customCaptions === null) {
+                $captions = AiCaptionVariations::generate(
+                    workspace: $workspace,
+                    prompt: $bulkSchedule->prompt,
+                    count: $totalPosts,
+                    userId: $user->id,
+                );
+            }
 
             $platforms = array_values($bulkSchedule->platforms);
 
@@ -96,7 +107,16 @@ class ProcessBulkScheduleJob implements ShouldQueue
                     'mime_type' => $media->mime_type,
                 ]];
 
-                $content = data_get($captions, $i, $bulkSchedule->prompt);
+                $content = '';
+                if ($customCaptions !== null) {
+                    if (isset($customCaptions[$mediaId])) {
+                        $content = $customCaptions[$mediaId];
+                    } elseif (isset($customCaptions[$i])) {
+                        $content = $customCaptions[$i];
+                    }
+                } else {
+                    $content = data_get($captions, $i, $bulkSchedule->prompt);
+                }
                 
                 if ($bulkSchedule->signature_id && $bulkSchedule->signature) {
                     $content = trim($content) . "\n\n" . $bulkSchedule->signature->content;

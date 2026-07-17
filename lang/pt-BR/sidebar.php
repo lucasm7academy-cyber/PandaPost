@@ -27,6 +27,7 @@ return [
 
     'analytics' => 'Analytics',
     'settings' => 'Configurações',
+    'admin' => 'Painel Admin',
 
     'posts' => [
         'calendar' => 'Calendário',

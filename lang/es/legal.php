@@ -6,16 +6,18 @@ return [
     'last_updated' => 'Última actualización: :date',
     'back_home' => 'Volver al inicio',
     'contact' => '¿Dudas? Contáctanos en :email.',
+    'terms_of_service' => 'Términos de Servicio',
+    'privacy_policy' => 'Política de Privacidad',
 
     'terms' => [
-        'page_title' => 'Términos de Servicio',
-        'title' => 'Términos de Servicio',
-        'intro' => 'Estos Términos de Servicio ("Términos") rigen tu acceso y uso de TryPost ("el Servicio", "nosotros"). Al crear una cuenta o usar el Servicio, aceptas estos Términos. Si no estás de acuerdo, no uses el Servicio.',
+        'page_title' => 'PandaPost Términos de Servicio',
+        'title' => 'PandaPost Términos de Servicio',
+        'intro' => 'Estos Términos de Servicio ("Términos") rigen tu acceso y uso de PandaPost ("el Servicio", "nosotros"). Al crear una cuenta o usar el Servicio, aceptas estos Términos. Si no estás de acuerdo, no uses el Servicio.',
 
         'sections' => [
             [
                 'heading' => '1. Elegibilidad',
-                'body' => 'Debes tener al menos 16 años para usar TryPost. Al usar el Servicio, declaras que cumples este requisito y que tienes autoridad para vincular a cualquier organización en cuyo nombre actúes.',
+                'body' => 'Debes tener al menos 16 años para usar PandaPost. Al usar el Servicio, declaras que cumples este requisito y que tienes autoridad para vincular a cualquier organización en cuyo nombre actúes.',
             ],
             [
                 'heading' => '2. Cuenta y seguridad',
@@ -23,15 +25,15 @@ return [
             ],
             [
                 'heading' => '3. Conexión de cuentas de redes sociales',
-                'body' => 'TryPost permite conectar cuentas de plataformas terceras (TikTok, Meta/Facebook/Instagram/Threads, X, LinkedIn, YouTube, Pinterest, Bluesky, Mastodon, Google Drive, entre otras) vía OAuth. Autorizas a TryPost a actuar en tu nombre solo dentro de los scopes que concedas explícitamente. Puedes desconectar cualquier cuenta en cualquier momento desde la configuración del workspace, lo que revoca los tokens almacenados.',
+                'body' => 'PandaPost permite conectar cuentas de plataformas terceras (TikTok, Meta/Facebook/Instagram/Threads, X, LinkedIn, YouTube, Pinterest, Bluesky, Mastodon, Google Drive, entre otras) vía OAuth. Autorizas a PandaPost a actuar en tu nombre solo dentro de los scopes que concedas explícitamente. Puedes desconectar cualquier cuenta en cualquier momento desde la configuración del workspace, lo que revoca los tokens almacenados.',
             ],
             [
                 'heading' => '4. Tu contenido',
-                'body' => 'Mantienes la plena titularidad del contenido que subas o programes mediante TryPost ("Tu Contenido"). Otorgas a TryPost una licencia limitada y no exclusiva para almacenar, procesar y transmitir Tu Contenido únicamente para operar el Servicio, incluyendo publicarlo en las plataformas terceras que indiques. Eres el único responsable por Tu Contenido y por el cumplimiento de los términos de cada plataforma.',
+                'body' => 'Mantienes la plena titularidad del contenido que subas o programes mediante PandaPost ("Tu Contenido"). Otorgas a PandaPost una licencia limitada y no exclusiva para almacenar, procesar y transmitir Tu Contenido únicamente para operar el Servicio, incluyendo publicarlo en las plataformas terceras que indiques. Eres el único responsable por Tu Contenido y por el cumplimiento de los términos de cada plataforma.',
             ],
             [
                 'heading' => '5. Uso aceptable',
-                'body' => 'Aceptas no usar TryPost para publicar contenido ilícito, infractor, abusivo, engañoso o que infrinja los términos de cualquier plataforma conectada. Podemos eliminar contenido o cerrar cuentas que infrinjan esta política.',
+                'body' => 'Aceptas no usar PandaPost para publicar contenido ilícito, infractor, abusivo, engañoso o que infrinja los términos de cualquier plataforma conectada. Podemos eliminar contenido o cerrar cuentas que infrinjan esta política.',
             ],
             [
                 'heading' => '6. Suscripciones y cobros',
@@ -39,15 +41,15 @@ return [
             ],
             [
                 'heading' => '7. Funcionalidades de IA',
-                'body' => 'TryPost ofrece funciones asistidas por IA (redacción, refinado, traducción). Las respuestas son generadas por proveedores de IA terceros y pueden contener imprecisiones. Eres responsable de revisar las salidas antes de publicar.',
+                'body' => 'PandaPost ofrece funciones asistidas por IA (redacción, refinado, traducción). Las respuestas son generadas por proveedores de IA terceros y pueden contener imprecisiones. Eres responsable de revisar las salidas antes de publicar.',
             ],
             [
                 'heading' => '8. Disponibilidad del Servicio',
-                'body' => 'Proporcionamos TryPost "tal cual" y "según disponibilidad". No garantizamos operación ininterrumpida. Las plataformas terceras pueden cambiar sus APIs o límites en cualquier momento, lo que puede afectar la publicación.',
+                'body' => 'Proporcionamos PandaPost "tal cual" y "según disponibilidad". No garantizamos operación ininterrumpida. Las plataformas terceras pueden cambiar sus APIs o límites en cualquier momento, lo que puede afectar la publicación.',
             ],
             [
                 'heading' => '9. Limitación de responsabilidad',
-                'body' => 'En la máxima medida permitida por la ley, TryPost no responde por daños indirectos, incidentales o consecuenciales, ni por pérdida de datos, ganancias o negocios derivados del uso del Servicio.',
+                'body' => 'En la máxima medida permitida por la ley, PandaPost no responde por daños indirectos, incidentales o consecuenciales, ni por pérdida de datos, ganancias o negocios derivados del uso del Servicio.',
             ],
             [
                 'heading' => '10. Terminación',
@@ -65,9 +67,9 @@ return [
     ],
 
     'privacy' => [
-        'page_title' => 'Política de Privacidad',
-        'title' => 'Política de Privacidad',
-        'intro' => 'Esta Política de Privacidad explica cómo TryPost ("nosotros") recopila, usa y protege tus datos personales. Cumplimos la Ley General de Protección de Datos de Brasil (LGPD) y el Reglamento General de Protección de Datos de la UE (GDPR) cuando aplica.',
+        'page_title' => 'PandaPost Política de Privacidad',
+        'title' => 'PandaPost Política de Privacidad',
+        'intro' => 'Esta Política de Privacidad explica cómo PandaPost ("nosotros") recopila, usa y protege tus datos personales. Cumplimos la Ley General de Protección de Datos de Brasil (LGPD) y el Reglamento General de Protección de Datos de la UE (GDPR) cuando aplica.',
 
         'sections' => [
             [
@@ -80,7 +82,7 @@ return [
             ],
             [
                 'heading' => '3. Uso de datos de TikTok',
-                'body' => 'Al conectar TikTok solicitamos únicamente los scopes que autorices. Usamos tus datos de TikTok exclusivamente para (a) mostrar tu perfil (nombre, avatar) dentro de TryPost, (b) publicar el contenido que programes y (c) mostrar analytics de tus propias publicaciones. No compartimos datos de TikTok con terceros, no los usamos para publicidad y no los retenemos más de lo necesario. Puedes revocar el acceso de TryPost en cualquier momento desde la configuración de TikTok o desde TryPost.',
+                'body' => 'Al conectar tu cuenta de TikTok, la aplicación accede a la información del perfil público (nombre de usuario, nombre de pantalla, avatar) y a las métricas del video (me gusta, vistas, comentarios) a través del TikTok API OAuth oficial. Estos datos se utilizan exclusivamente para mostrar estadísticas en el panel del usuario y nunca se venden, comparten ni se utilizan para publicidad. La aplicación solo publica videos programados en nombre del usuario. El usuario puede desconectar su cuenta en cualquier momento en la configuración o revocar el acceso directamente a través de la configuración de su cuenta de TikTok (Seguridad e inicio de sesión -> Administrar acceso a la aplicación).',
             ],
             [
                 'heading' => '4. Pagos',
@@ -116,7 +118,7 @@ return [
             ],
             [
                 'heading' => '12. Menores',
-                'body' => 'TryPost no está destinado a menores de 16 años. No recopilamos intencionalmente datos personales de menores de 16. Si crees que lo hicimos, contáctanos para eliminarlos.',
+                'body' => 'PandaPost no está destinado a menores de 16 años. No recopilamos intencionalmente datos personales de menores de 16. Si crees que lo hicimos, contáctanos para eliminarlos.',
             ],
             [
                 'heading' => '13. Cambios en esta política',

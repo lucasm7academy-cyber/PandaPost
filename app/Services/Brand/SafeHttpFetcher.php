@@ -15,7 +15,7 @@ use RuntimeException;
  */
 final class SafeHttpFetcher
 {
-    private const string USER_AGENT = 'TryPostBot/1.0 (+https://trypost.it)';
+    private const string USER_AGENT = 'PandaPostBot/1.0 (+https://pandapost.com.br)';
 
     private const int TIMEOUT_SECONDS = 10;
 

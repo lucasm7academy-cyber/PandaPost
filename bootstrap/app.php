@@ -34,6 +34,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'workspace.token' => LoadWorkspaceFromToken::class,
             'registration.enabled' => EnsureRegistrationEnabled::class,
+            'admin' => \App\Http\Middleware\App\AdminMiddleware::class,
         ]);
 
         $middleware->preventRequestForgery(except: [

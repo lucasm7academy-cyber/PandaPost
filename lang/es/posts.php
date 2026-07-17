@@ -292,6 +292,8 @@ return [
         'unschedule_cta' => 'Cancelar para editar',
 
         'tabs' => [
+            'editor' => 'Editor',
+            'preview_settings' => 'Vista previa y ajustes',
             'preview' => 'Vista previa',
             'schedule' => 'Programación',
             'comments' => 'Comentarios',

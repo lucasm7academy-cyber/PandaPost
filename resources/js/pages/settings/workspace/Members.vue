@@ -54,7 +54,7 @@ const tabs = computed(() => [
     <Head :title="$t('settings.members.title')" />
 
     <AppLayout>
-        <div class="mx-auto max-w-4xl space-y-8 px-6 py-8">
+        <div class="mx-auto max-w-4xl space-y-6 md:space-y-8 px-4 md:px-6 py-6 md:py-8">
             <PageHeader
                 :title="$t('settings.hub.title')"
                 :description="$t('settings.hub.description')"

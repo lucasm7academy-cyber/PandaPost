@@ -176,26 +176,28 @@ useWorkspaceEcho(
     <Head :title="pageTitle" />
 
     <AppLayout>
-        <div class="flex h-full flex-1 flex-col gap-6 px-6 py-8">
+        <div class="flex h-full flex-1 flex-col gap-6 px-4 py-6 md:px-6 md:py-8">
             <PageHeader :title="pageTitle" />
 
             <!-- Toolbar -->
-            <div class="flex items-center justify-between gap-3">
-                <div class="flex items-center gap-3">
-                    <div class="relative">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div class="flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-auto">
+                    <div class="relative w-full sm:w-auto">
                         <IconSearch class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-foreground/60" />
                         <Input
                             v-model="searchQuery"
                             :placeholder="trans('posts.search')"
-                            class="w-64 pl-9"
+                            class="w-full sm:w-64 pl-9"
                         />
                     </div>
 
-                    <LabelFilter v-if="labels.length" v-model="selectedLabelIds" :labels="labels" />
+                    <div class="w-full sm:w-auto">
+                        <LabelFilter v-if="labels.length" v-model="selectedLabelIds" :labels="labels" />
+                    </div>
                 </div>
 
-                <Link :href="createPost.url()">
-                    <Button>{{ $t('posts.new_post') }}</Button>
+                <Link :href="createPost.url()" class="w-full sm:w-auto">
+                    <Button class="w-full sm:w-auto">{{ $t('posts.new_post') }}</Button>
                 </Link>
             </div>
 
@@ -208,8 +210,8 @@ useWorkspaceEcho(
 
             <div v-else>
                 <InfiniteScroll data="posts" items-element="#posts-body" preserve-url>
-                    <Table>
-                        <TableHeader>
+                    <Table class="block md:table">
+                        <TableHeader class="hidden md:table-header-group">
                             <TableRow>
                                 <TableHead>{{ $t('posts.table.post') }}</TableHead>
                                 <TableHead>{{ $t('posts.table.status') }}</TableHead>
@@ -217,74 +219,119 @@ useWorkspaceEcho(
                                 <TableHead class="text-right">{{ $t('posts.table.actions') }}</TableHead>
                             </TableRow>
                         </TableHeader>
-                        <TableBody id="posts-body">
+                        <TableBody id="posts-body" class="block md:table-row-group">
                             <TableRow
                                 v-for="post in posts.data"
                                 :key="post.id"
-                                class="cursor-pointer"
+                                class="cursor-pointer block md:table-row p-4 md:p-0 border-b border-dashed border-foreground/20 md:border-b-0"
                                 @click="router.visit(postUrl(post))"
                             >
-                                <TableCell class="max-w-md py-3">
-                                    <div class="space-y-1.5">
-                                        <div class="flex items-center gap-2">
-                                            <div v-if="getEnabledPlatforms(post).length" class="flex -space-x-1.5">
-                                                <TooltipProvider
-                                                    v-for="pp in getEnabledPlatforms(post).slice(0, 4)"
-                                                    :key="pp.id"
-                                                    :delay-duration="200"
-                                                >
-                                                    <Tooltip>
-                                                        <TooltipTrigger as-child>
-                                                            <span class="inline-flex size-6 items-center justify-center overflow-hidden rounded-full border-2 border-foreground bg-card shadow-2xs">
-                                                                <img
-                                                                    :src="getPlatformLogo(pp.platform)"
-                                                                    :alt="pp.platform"
-                                                                    class="size-full object-cover"
-                                                                />
-                                                            </span>
-                                                        </TooltipTrigger>
-                                                        <TooltipContent>
-                                                            <div class="space-y-0.5 text-xs">
-                                                                <p class="font-semibold">
-                                                                    {{ pp.social_account?.display_name ?? pp.platform }}<span
-                                                                        v-if="pp.social_account?.username"
-                                                                        class="font-normal opacity-80"
-                                                                    >&nbsp;·&nbsp;@{{ pp.social_account.username }}</span>
-                                                                </p>
-                                                                <p class="opacity-70">{{ getPlatformLabel(pp.platform) }}</p>
-                                                            </div>
-                                                        </TooltipContent>
-                                                    </Tooltip>
-                                                </TooltipProvider>
+                                <TableCell class="block md:table-cell p-0 md:px-3 md:py-3 w-full md:w-auto whitespace-normal md:whitespace-nowrap max-w-none md:max-w-md">
+                                    <div class="space-y-2">
+                                        <div class="flex items-center justify-between gap-2">
+                                            <div class="flex flex-wrap items-center gap-2">
+                                                <div v-if="getEnabledPlatforms(post).length" class="flex -space-x-1.5">
+                                                    <TooltipProvider
+                                                        v-for="pp in getEnabledPlatforms(post).slice(0, 4)"
+                                                        :key="pp.id"
+                                                        :delay-duration="200"
+                                                    >
+                                                        <Tooltip>
+                                                            <TooltipTrigger as-child>
+                                                                <span class="inline-flex size-6 items-center justify-center overflow-hidden rounded-full border-2 border-foreground bg-card shadow-2xs">
+                                                                    <img
+                                                                        :src="getPlatformLogo(pp.platform)"
+                                                                        :alt="pp.platform"
+                                                                        class="size-full object-cover"
+                                                                    />
+                                                                </span>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent>
+                                                                <div class="space-y-0.5 text-xs">
+                                                                    <p class="font-semibold">
+                                                                        {{ pp.social_account?.display_name ?? pp.platform }}<span
+                                                                            v-if="pp.social_account?.username"
+                                                                            class="font-normal opacity-80"
+                                                                        >&nbsp;·&nbsp;@{{ pp.social_account.username }}</span>
+                                                                    </p>
+                                                                    <p class="opacity-70">{{ getPlatformLabel(pp.platform) }}</p>
+                                                                </div>
+                                                            </TooltipContent>
+                                                        </Tooltip>
+                                                    </TooltipProvider>
+                                                </div>
+                                                <span
+                                                    v-if="getEnabledPlatforms(post).length > 4"
+                                                    class="text-xs font-bold text-foreground/60"
+                                                >+{{ getEnabledPlatforms(post).length - 4 }}</span>
+                                                <div v-if="post.labels?.length" class="ml-1 flex flex-wrap items-center gap-1">
+                                                    <LabelBadge
+                                                        v-for="label in post.labels.slice(0, 3)"
+                                                        :key="label.id"
+                                                        :label="label"
+                                                    />
+                                                    <span v-if="post.labels.length > 3" class="text-xs font-bold text-foreground/60">
+                                                        +{{ post.labels.length - 3 }}
+                                                    </span>
+                                                </div>
                                             </div>
-                                            <span
-                                                v-if="getEnabledPlatforms(post).length > 4"
-                                                class="text-xs font-bold text-foreground/60"
-                                            >+{{ getEnabledPlatforms(post).length - 4 }}</span>
-                                            <div v-if="post.labels?.length" class="ml-1 flex flex-wrap items-center gap-1">
-                                                <LabelBadge
-                                                    v-for="label in post.labels.slice(0, 3)"
-                                                    :key="label.id"
-                                                    :label="label"
-                                                />
-                                                <span v-if="post.labels.length > 3" class="text-xs font-bold text-foreground/60">
-                                                    +{{ post.labels.length - 3 }}
-                                                </span>
+                                            <!-- Mobile Status Badge and Dropdown Actions -->
+                                            <div class="flex items-center gap-2 md:hidden" @click.stop>
+                                                <Badge :variant="getPostStatusConfig(post.status).variant">
+                                                    <component :is="getPostStatusConfig(post.status).icon" class="size-3" />
+                                                    {{ getPostStatusConfig(post.status).label }}
+                                                </Badge>
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger as-child>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="icon"
+                                                            class="size-8"
+                                                            @click.stop
+                                                        >
+                                                            <IconDots class="size-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuItem @click="handleDuplicate(post)">
+                                                            <IconCopyPlus class="size-4" />
+                                                            {{ $t('posts.actions.duplicate') }}
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem @click="handleCopyId(post)">
+                                                            <IconCopy class="size-4" />
+                                                            {{ $t('posts.actions.copy_id') }}
+                                                        </DropdownMenuItem>
+                                                        <template v-if="canDelete(post)">
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuItem
+                                                                variant="destructive"
+                                                                @click="handleDelete(post)"
+                                                            >
+                                                                <IconTrash class="size-4" />
+                                                                {{ $t('posts.actions.delete') }}
+                                                            </DropdownMenuItem>
+                                                        </template>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
                                             </div>
                                         </div>
                                         <p class="truncate text-foreground/80">{{ getPostPreview(post) }}</p>
+                                        <!-- Mobile Scheduled/Published Date -->
+                                        <p class="text-xs text-foreground/60 md:hidden">
+                                            {{ formatDateTime(post.scheduled_at ?? post.published_at) }}
+                                        </p>
                                     </div>
                                 </TableCell>
-                                <TableCell>
+                                <TableCell class="hidden md:table-cell">
                                     <Badge :variant="getPostStatusConfig(post.status).variant">
                                         <component :is="getPostStatusConfig(post.status).icon" class="size-3" />
                                         {{ getPostStatusConfig(post.status).label }}
                                     </Badge>
                                 </TableCell>
-                                <TableCell>
+                                <TableCell class="hidden md:table-cell">
                                     {{ formatDateTime(post.scheduled_at ?? post.published_at) }}
                                 </TableCell>
-                                <TableCell class="text-right" @click.stop>
+                                <TableCell class="hidden md:table-cell text-right" @click.stop>
                                     <DropdownMenu>
                                         <DropdownMenuTrigger as-child>
                                             <Button

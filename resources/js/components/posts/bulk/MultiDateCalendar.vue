@@ -12,11 +12,17 @@ const props = withDefaults(defineProps<Props>(), {
     minDate: null,
 });
 
-const selectedDates = defineModel<string[]>('selectedDates', { default: () => [] });
+const selectedDates = defineModel<string[]>('selectedDates', {
+    default: () => [],
+});
 
 const cursor = ref(dayjs().startOf('month'));
 
-const minDay = computed(() => (props.minDate ? dayjs(props.minDate).startOf('day') : dayjs().startOf('day')));
+const minDay = computed(() =>
+    props.minDate
+        ? dayjs(props.minDate).startOf('day')
+        : dayjs().startOf('day'),
+);
 
 const monthLabel = computed(() => cursor.value.format('MMMM YYYY'));
 
@@ -82,16 +88,24 @@ const goNext = () => {
                 dusk="calendar-prev"
                 @click="goPrev"
             >
-                <IconChevronLeft class="size-4 text-foreground" stroke-width="2.5" />
+                <IconChevronLeft
+                    class="size-4 text-foreground"
+                    stroke-width="2.5"
+                />
             </button>
-            <p class="text-sm font-bold capitalize text-foreground">{{ monthLabel }}</p>
+            <p class="text-sm font-bold text-foreground capitalize">
+                {{ monthLabel }}
+            </p>
             <button
                 type="button"
                 class="inline-flex size-8 cursor-pointer items-center justify-center rounded-md border-2 border-foreground bg-card shadow-2xs transition-transform hover:translate-x-0.5"
                 dusk="calendar-next"
                 @click="goNext"
             >
-                <IconChevronRight class="size-4 text-foreground" stroke-width="2.5" />
+                <IconChevronRight
+                    class="size-4 text-foreground"
+                    stroke-width="2.5"
+                />
             </button>
         </div>
 
@@ -99,7 +113,7 @@ const goNext = () => {
             <p
                 v-for="name in weekdayNames"
                 :key="name"
-                class="text-[10px] font-bold uppercase tracking-wider text-foreground/50"
+                class="text-[10px] font-bold tracking-wider text-foreground/50 uppercase"
             >
                 {{ name }}
             </p>
@@ -117,7 +131,9 @@ const goNext = () => {
                     isSelected(cell.iso)
                         ? 'border-foreground bg-violet-200 shadow-md'
                         : 'border-transparent hover:border-foreground hover:bg-foreground/5',
-                    !cell.selectable ? 'cursor-not-allowed opacity-30 hover:border-transparent hover:bg-transparent' : '',
+                    !cell.selectable
+                        ? 'cursor-not-allowed opacity-30 hover:border-transparent hover:bg-transparent'
+                        : '',
                 ]"
                 :dusk="`calendar-day-${cell.iso}`"
                 @click="toggleDate(cell)"

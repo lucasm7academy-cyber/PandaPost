@@ -6,8 +6,8 @@ return [
     'throttle' => 'Demasiados intentos de inicio de sesión. Inténtalo de nuevo en :seconds segundos.',
 
     'flash' => [
-        'welcome' => '¡Bienvenido a TryPost!',
-        'welcome_trial' => '¡Bienvenido a TryPost! Tu prueba ha comenzado.',
+        'welcome' => '¡Bienvenido a PandaPost!',
+        'welcome_trial' => '¡Bienvenido a PandaPost! Tu prueba ha comenzado.',
     ],
 
     'legal' => 'Al continuar, aceptas nuestros <a href="/terms" target="_blank" rel="noopener">Términos de Servicio</a> y <a href="/privacy" target="_blank" rel="noopener">Política de Privacidad</a>.',

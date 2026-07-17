@@ -1,8 +1,23 @@
 <script setup lang="ts">
 import { router, useHttp } from '@inertiajs/vue3';
-import { IconCloudUpload, IconLoader2, IconPencilPlus, IconPhoto, IconPlus, IconSearch, IconTrash } from '@tabler/icons-vue';
+import {
+    IconCloudUpload,
+    IconLoader2,
+    IconPencilPlus,
+    IconPhoto,
+    IconSearch,
+    IconTrash,
+} from '@tabler/icons-vue';
 import { trans } from 'laravel-vue-i18n';
-import { computed, nextTick, onMounted, onUnmounted, ref, useTemplateRef, watch } from 'vue';
+import {
+    computed,
+    nextTick,
+    onMounted,
+    onUnmounted,
+    ref,
+    useTemplateRef,
+    watch,
+} from 'vue';
 import { toast } from 'vue-sonner';
 
 import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue';
@@ -14,11 +29,27 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import debounce from '@/debounce';
-import { destroy as assetsDestroy, search as assetsSearch, storeChunked as assetsStoreChunked, storeFromUrl } from '@/routes/app/assets';
-import { search as giphySearch, trending as giphyTrending } from '@/routes/app/assets/giphy';
-import { search as unsplashSearch, trending as unsplashTrending } from '@/routes/app/assets/unsplash';
+import {
+    destroy as assetsDestroy,
+    search as assetsSearch,
+    storeChunked as assetsStoreChunked,
+    storeFromUrl,
+} from '@/routes/app/assets';
+import {
+    search as giphySearch,
+    trending as giphyTrending,
+} from '@/routes/app/assets/giphy';
+import {
+    search as unsplashSearch,
+    trending as unsplashTrending,
+} from '@/routes/app/assets/unsplash';
 import { store as storePost } from '@/routes/app/posts';
 import { uploadChunked } from '@/utils/chunkedUpload';
 
@@ -121,9 +152,13 @@ const previewGiphyGif = (gif: GiphyGif) => {
 
 const selectedIds = computed(() => new Set(selected.value.map((m) => m.id)));
 const isSelected = (id: string) => selectedIds.value.has(id);
-const selectionIndex = (id: string) => selected.value.findIndex((m) => m.id === id) + 1;
+const selectionIndex = (id: string) =>
+    selected.value.findIndex((m) => m.id === id) + 1;
 
-const toggleSelect = (asset: AssetMedia | SavedMedia, extra?: Partial<PickedMedia>) => {
+const toggleSelect = (
+    asset: AssetMedia | SavedMedia,
+    extra?: Partial<PickedMedia>,
+) => {
     if (!isPicker.value) return;
     if (isSelected(asset.id)) {
         selected.value = selected.value.filter((m) => m.id !== asset.id);
@@ -136,6 +171,7 @@ const toggleSelect = (asset: AssetMedia | SavedMedia, extra?: Partial<PickedMedi
                 url: asset.url,
                 type: asset.type,
                 mime_type: asset.mime_type,
+                original_filename: 'original_filename' in asset ? asset.original_filename : undefined,
                 ...extra,
             },
         ];
@@ -149,7 +185,9 @@ const uploadsPage = ref(1);
 const uploadsLastPage = ref(1);
 const uploadsLoading = ref(false);
 const uploadsLoadingMore = ref(false);
-const uploadsHasMore = computed(() => uploadsPage.value < uploadsLastPage.value);
+const uploadsHasMore = computed(
+    () => uploadsPage.value < uploadsLastPage.value,
+);
 
 const fileInput = ref<HTMLInputElement | null>(null);
 const uploadsSentinel = useTemplateRef<HTMLDivElement>('uploadsSentinel');
@@ -160,10 +198,19 @@ let uploadsObserver: IntersectionObserver | null = null;
 const fetchUploads = async (page: number, term: string) => {
     const response = await fetch(
         assetsSearch.url({ query: { search: term, page: String(page) } }),
-        { headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' },
+        {
+            headers: {
+                Accept: 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            credentials: 'same-origin',
+        },
     );
     if (!response.ok) throw new Error('Failed to load uploads');
-    return (await response.json()) as { data: AssetMedia[]; meta: { current_page: number; last_page: number } };
+    return (await response.json()) as {
+        data: AssetMedia[];
+        meta: { current_page: number; last_page: number };
+    };
 };
 
 const loadUploadsFirstPage = async () => {
@@ -184,7 +231,10 @@ const loadMoreUploads = async () => {
     if (uploadsLoadingMore.value || !uploadsHasMore.value) return;
     uploadsLoadingMore.value = true;
     try {
-        const response = await fetchUploads(uploadsPage.value + 1, uploadsSearch.value.trim());
+        const response = await fetchUploads(
+            uploadsPage.value + 1,
+            uploadsSearch.value.trim(),
+        );
         uploads.value.push(...response.data);
         uploadsPage.value = response.meta.current_page;
         uploadsLastPage.value = response.meta.last_page;
@@ -205,7 +255,11 @@ const setupUploadsObserver = () => {
     uploadsObserver?.disconnect();
     uploadsObserver = new IntersectionObserver(
         (entries) => {
-            if (entries[0]?.isIntersecting && uploadsHasMore.value && !uploadsLoadingMore.value) {
+            if (
+                entries[0]?.isIntersecting &&
+                uploadsHasMore.value &&
+                !uploadsLoadingMore.value
+            ) {
                 void loadMoreUploads();
             }
         },
@@ -261,13 +315,27 @@ const handleDelete = (assetId: string) => {
 
 const createPostFromAsset = (asset: AssetMedia) => {
     router.post(storePost.url(), {
-        media: [{ id: asset.id, path: asset.path, url: asset.url, type: asset.type, mime_type: asset.mime_type }],
+        media: [
+            {
+                id: asset.id,
+                path: asset.path,
+                url: asset.url,
+                type: asset.type,
+                mime_type: asset.mime_type,
+            },
+        ],
     });
 };
 
 // ─── Unsplash tab ──────────────────────────────────────────────
-const httpUnsplash = useHttp<Record<string, never>, { results: UnsplashPhoto[]; total_pages?: number }>({});
-const httpSaveFromUrl = useHttp<{ url: string; filename: string; download_location?: string }, SavedMedia>({
+const httpUnsplash = useHttp<
+    Record<string, never>,
+    { results: UnsplashPhoto[]; total_pages?: number }
+>({});
+const httpSaveFromUrl = useHttp<
+    { url: string; filename: string; download_location?: string },
+    SavedMedia
+>({
     url: '',
     filename: '',
 });
@@ -293,14 +361,18 @@ const displayedPhotos = computed(() =>
 );
 
 const hasMorePhotos = computed(() =>
-    unsplashQuery.value ? unsplashPage.value < unsplashTotalPages.value : trendingHasMore.value,
+    unsplashQuery.value
+        ? unsplashPage.value < unsplashTotalPages.value
+        : trendingHasMore.value,
 );
 
 const loadTrending = async (page = 1) => {
     if (unsplashLoading.value) return;
     unsplashLoading.value = true;
     try {
-        const response = await httpUnsplash.get(unsplashTrending.url({ query: { page: String(page) } }));
+        const response = await httpUnsplash.get(
+            unsplashTrending.url({ query: { page: String(page) } }),
+        );
         const results = response?.results ?? [];
         if (page === 1) trendingPhotos.value = results;
         else trendingPhotos.value.push(...results);
@@ -321,7 +393,11 @@ const searchUnsplashFn = debounce(async () => {
     unsplashLoading.value = true;
     unsplashPage.value = 1;
     try {
-        const response = await httpUnsplash.get(unsplashSearch.url({ query: { query: unsplashQuery.value, page: '1' } }));
+        const response = await httpUnsplash.get(
+            unsplashSearch.url({
+                query: { query: unsplashQuery.value, page: '1' },
+            }),
+        );
         unsplashResults.value = response?.results ?? [];
         unsplashTotalPages.value = response?.total_pages ?? 0;
     } catch {
@@ -332,12 +408,18 @@ const searchUnsplashFn = debounce(async () => {
 }, 400);
 
 const loadMoreUnsplash = async () => {
-    if (unsplashPage.value >= unsplashTotalPages.value || unsplashLoading.value) return;
+    if (unsplashPage.value >= unsplashTotalPages.value || unsplashLoading.value)
+        return;
     unsplashLoading.value = true;
     unsplashPage.value++;
     try {
         const response = await httpUnsplash.get(
-            unsplashSearch.url({ query: { query: unsplashQuery.value, page: String(unsplashPage.value) } }),
+            unsplashSearch.url({
+                query: {
+                    query: unsplashQuery.value,
+                    page: String(unsplashPage.value),
+                },
+            }),
         );
         unsplashResults.value.push(...(response?.results ?? []));
     } catch {
@@ -357,16 +439,25 @@ const setupUnsplashObserver = () => {
     if (unsplashObserver) unsplashObserver.disconnect();
     unsplashObserver = new IntersectionObserver(
         (entries) => {
-            if (entries[0]?.isIntersecting && hasMorePhotos.value && !unsplashLoading.value) {
+            if (
+                entries[0]?.isIntersecting &&
+                hasMorePhotos.value &&
+                !unsplashLoading.value
+            ) {
                 void loadMorePhotosOnScroll();
             }
         },
         { rootMargin: '200px' },
     );
-    if (unsplashSentinel.value) unsplashObserver.observe(unsplashSentinel.value);
+    if (unsplashSentinel.value)
+        unsplashObserver.observe(unsplashSentinel.value);
 };
 
-const saveMediaFromUrl = async (payload: { url: string; filename: string; download_location?: string }): Promise<SavedMedia | null> => {
+const saveMediaFromUrl = async (payload: {
+    url: string;
+    filename: string;
+    download_location?: string;
+}): Promise<SavedMedia | null> => {
     httpSaveFromUrl.url = payload.url;
     httpSaveFromUrl.filename = payload.filename;
     httpSaveFromUrl.download_location = payload.download_location;
@@ -388,7 +479,10 @@ const saveAndPickUnsplash = async (photo: UnsplashPhoto) => {
     if (!media) return;
 
     if (isPicker.value) {
-        toggleSelect(media, { source: 'unsplash', source_meta: { photo_id: photo.id } });
+        toggleSelect(media, {
+            source: 'unsplash',
+            source_meta: { photo_id: photo.id },
+        });
     } else {
         toast.success(trans('assets.saved'));
         await loadUploadsFirstPage();
@@ -407,20 +501,25 @@ const createPostFromUnsplash = async (photo: UnsplashPhoto) => {
         return;
     }
     router.post(storePost.url(), {
-        media: [{
-            id: media.id,
-            path: media.path,
-            url: media.url,
-            type: media.type,
-            mime_type: media.mime_type,
-            source: 'unsplash',
-            source_meta: { photo_id: photo.id },
-        }],
+        media: [
+            {
+                id: media.id,
+                path: media.path,
+                url: media.url,
+                type: media.type,
+                mime_type: media.mime_type,
+                source: 'unsplash',
+                source_meta: { photo_id: photo.id },
+            },
+        ],
     });
 };
 
 // ─── Giphy tab ─────────────────────────────────────────────────
-const httpGiphy = useHttp<Record<string, never>, { results: GiphyGif[]; total_pages?: number }>({});
+const httpGiphy = useHttp<
+    Record<string, never>,
+    { results: GiphyGif[]; total_pages?: number }
+>({});
 
 const giphyQuery = ref('');
 const giphyResults = ref<GiphyGif[]>([]);
@@ -443,14 +542,18 @@ const displayedGifs = computed(() =>
 );
 
 const hasMoreGifs = computed(() =>
-    giphyQuery.value ? giphyPage.value < giphyTotalPages.value : giphyTrendingHasMore.value,
+    giphyQuery.value
+        ? giphyPage.value < giphyTotalPages.value
+        : giphyTrendingHasMore.value,
 );
 
 const loadGiphyTrending = async (page = 1) => {
     if (giphyLoading.value) return;
     giphyLoading.value = true;
     try {
-        const response = await httpGiphy.get(giphyTrending.url({ query: { page: String(page) } }));
+        const response = await httpGiphy.get(
+            giphyTrending.url({ query: { page: String(page) } }),
+        );
         const results = response?.results ?? [];
         if (page === 1) giphyTrendingItems.value = results;
         else giphyTrendingItems.value.push(...results);
@@ -471,7 +574,9 @@ const searchGiphyFn = debounce(async () => {
     giphyLoading.value = true;
     giphyPage.value = 1;
     try {
-        const response = await httpGiphy.get(giphySearch.url({ query: { query: giphyQuery.value, page: '1' } }));
+        const response = await httpGiphy.get(
+            giphySearch.url({ query: { query: giphyQuery.value, page: '1' } }),
+        );
         giphyResults.value = response?.results ?? [];
         giphyTotalPages.value = response?.total_pages ?? 0;
     } catch {
@@ -486,7 +591,14 @@ const loadMoreGiphy = async () => {
     giphyLoading.value = true;
     giphyPage.value++;
     try {
-        const response = await httpGiphy.get(giphySearch.url({ query: { query: giphyQuery.value, page: String(giphyPage.value) } }));
+        const response = await httpGiphy.get(
+            giphySearch.url({
+                query: {
+                    query: giphyQuery.value,
+                    page: String(giphyPage.value),
+                },
+            }),
+        );
         giphyResults.value.push(...(response?.results ?? []));
     } catch {
         // ignore
@@ -505,7 +617,11 @@ const setupGiphyObserver = () => {
     if (giphyObserver) giphyObserver.disconnect();
     giphyObserver = new IntersectionObserver(
         (entries) => {
-            if (entries[0]?.isIntersecting && hasMoreGifs.value && !giphyLoading.value) {
+            if (
+                entries[0]?.isIntersecting &&
+                hasMoreGifs.value &&
+                !giphyLoading.value
+            ) {
                 void loadMoreGifsOnScroll();
             }
         },
@@ -524,7 +640,10 @@ const saveAndPickGiphy = async (gif: GiphyGif) => {
     if (!media) return;
 
     if (isPicker.value) {
-        toggleSelect(media, { source: 'giphy', source_meta: { gif_id: gif.id } });
+        toggleSelect(media, {
+            source: 'giphy',
+            source_meta: { gif_id: gif.id },
+        });
     } else {
         toast.success(trans('assets.saved'));
         await loadUploadsFirstPage();
@@ -542,15 +661,17 @@ const createPostFromGiphy = async (gif: GiphyGif) => {
         return;
     }
     router.post(storePost.url(), {
-        media: [{
-            id: media.id,
-            path: media.path,
-            url: media.url,
-            type: media.type,
-            mime_type: media.mime_type,
-            source: 'giphy',
-            source_meta: { gif_id: gif.id },
-        }],
+        media: [
+            {
+                id: media.id,
+                path: media.path,
+                url: media.url,
+                type: media.type,
+                mime_type: media.mime_type,
+                source: 'giphy',
+                source_meta: { gif_id: gif.id },
+            },
+        ],
     });
 };
 
@@ -594,25 +715,42 @@ onUnmounted(() => {
     <div>
         <Tabs default-value="uploads">
             <TabsList>
-                <TabsTrigger value="uploads">{{ trans('assets.tabs.my_uploads') }}</TabsTrigger>
-                <TabsTrigger value="google-drive">{{ trans('assets.tabs.google_drive') }}</TabsTrigger>
+                <TabsTrigger value="uploads">{{
+                    trans('assets.tabs.my_uploads')
+                }}</TabsTrigger>
+                <TabsTrigger value="google-drive">{{
+                    trans('assets.tabs.google_drive')
+                }}</TabsTrigger>
             </TabsList>
 
             <!-- ───── My Uploads ───── -->
             <TabsContent value="uploads" class="mt-6">
                 <div
                     class="relative mb-4 flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed p-8 text-center transition-colors"
-                    :class="isDragging ? 'border-foreground bg-violet-100' : 'border-foreground/25 bg-card hover:bg-foreground/5'"
+                    :class="
+                        isDragging
+                            ? 'border-foreground bg-violet-100'
+                            : 'border-foreground/25 bg-card hover:bg-foreground/5'
+                    "
                     @click="triggerFileInput"
                     @dragover.prevent="isDragging = true"
                     @dragleave.prevent="isDragging = false"
                     @drop.prevent="handleDrop"
                 >
-                    <div class="inline-flex size-12 -rotate-3 items-center justify-center rounded-2xl border-2 border-foreground bg-violet-200 shadow-2xs">
-                        <IconCloudUpload class="size-6 text-foreground" stroke-width="2" />
+                    <div
+                        class="inline-flex size-12 -rotate-3 items-center justify-center rounded-2xl border-2 border-foreground bg-violet-200 shadow-2xs"
+                    >
+                        <IconCloudUpload
+                            class="size-6 text-foreground"
+                            stroke-width="2"
+                        />
                     </div>
-                    <p class="text-sm font-semibold text-foreground">{{ trans('assets.upload.drag_drop') }}</p>
-                    <p class="text-xs text-foreground/60">{{ trans('assets.upload.formats') }}</p>
+                    <p class="text-sm font-semibold text-foreground">
+                        {{ trans('assets.upload.drag_drop') }}
+                    </p>
+                    <p class="text-xs text-foreground/60">
+                        {{ trans('assets.upload.formats') }}
+                    </p>
                     <input
                         ref="fileInput"
                         type="file"
@@ -621,8 +759,13 @@ onUnmounted(() => {
                         accept="image/jpeg,image/png,image/gif,image/webp,video/mp4"
                         @change="handleFileSelect"
                     />
-                    <div v-if="uploading" class="absolute inset-0 flex items-center justify-center rounded-2xl bg-card/85">
-                        <div class="flex items-center gap-2 text-sm font-semibold text-foreground">
+                    <div
+                        v-if="uploading"
+                        class="absolute inset-0 flex items-center justify-center rounded-2xl bg-card/85"
+                    >
+                        <div
+                            class="flex items-center gap-2 text-sm font-semibold text-foreground"
+                        >
                             <IconLoader2 class="size-4 animate-spin" />
                             {{ trans('assets.upload.uploading') }}
                         </div>
@@ -630,7 +773,9 @@ onUnmounted(() => {
                 </div>
 
                 <div class="relative mb-4">
-                    <IconSearch class="pointer-events-none absolute left-3.5 top-1/2 size-5 -translate-y-1/2 text-foreground/60" />
+                    <IconSearch
+                        class="pointer-events-none absolute top-1/2 left-3.5 size-5 -translate-y-1/2 text-foreground/60"
+                    />
                     <Input
                         v-model="uploadsSearch"
                         type="search"
@@ -639,8 +784,15 @@ onUnmounted(() => {
                     />
                 </div>
 
-                <div v-if="uploadsLoading" class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-                    <Skeleton v-for="i in 8" :key="i" class="aspect-square rounded-xl" />
+                <div
+                    v-if="uploadsLoading"
+                    class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
+                >
+                    <Skeleton
+                        v-for="i in 8"
+                        :key="i"
+                        class="aspect-square rounded-xl"
+                    />
                 </div>
 
                 <EmptyState
@@ -650,14 +802,21 @@ onUnmounted(() => {
                     :description="trans('assets.empty.description')"
                 />
 
-                <div v-else class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                <div
+                    v-else
+                    class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
+                >
                     <div
                         v-for="asset in uploads"
                         :key="asset.id"
                         class="group relative overflow-hidden rounded-xl border-2 border-foreground bg-muted shadow-2xs transition-all hover:-translate-y-0.5 hover:shadow-md"
                         :class="[
-                            (isPicker || asset.type !== 'video') ? 'cursor-pointer' : '',
-                            isPicker && isSelected(asset.id) ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : '',
+                            isPicker || asset.type !== 'video'
+                                ? 'cursor-pointer'
+                                : '',
+                            isPicker && isSelected(asset.id)
+                                ? 'ring-2 ring-primary ring-offset-2 ring-offset-background'
+                                : '',
                         ]"
                         @click="handleAssetClick(asset)"
                     >
@@ -680,7 +839,7 @@ onUnmounted(() => {
 
                         <div
                             v-if="isPicker && isSelected(asset.id)"
-                            class="absolute right-2 top-2 inline-flex size-6 items-center justify-center rounded-full border-2 border-foreground bg-primary text-xs font-bold text-primary-foreground shadow-2xs"
+                            class="absolute top-2 right-2 inline-flex size-6 items-center justify-center rounded-full border-2 border-foreground bg-primary text-xs font-bold text-primary-foreground shadow-2xs"
                         >
                             {{ selectionIndex(asset.id) }}
                         </div>
@@ -693,11 +852,22 @@ onUnmounted(() => {
                                 <TooltipProvider>
                                     <Tooltip>
                                         <TooltipTrigger as-child>
-                                            <Button variant="outline" size="icon" class="size-8" @click.stop="createPostFromAsset(asset)">
-                                                <IconPencilPlus class="size-4" />
+                                            <Button
+                                                variant="outline"
+                                                size="icon"
+                                                class="size-8"
+                                                @click.stop="
+                                                    createPostFromAsset(asset)
+                                                "
+                                            >
+                                                <IconPencilPlus
+                                                    class="size-4"
+                                                />
                                             </Button>
                                         </TooltipTrigger>
-                                        <TooltipContent>{{ trans('assets.create_post') }}</TooltipContent>
+                                        <TooltipContent>{{
+                                            trans('assets.create_post')
+                                        }}</TooltipContent>
                                     </Tooltip>
                                 </TooltipProvider>
                                 <Button
@@ -710,15 +880,28 @@ onUnmounted(() => {
                                 </Button>
                             </div>
                             <div class="space-y-0.5">
-                                <p class="truncate text-xs font-semibold text-white">{{ asset.original_filename }}</p>
-                                <p class="text-xs text-white/70">{{ formatFileSize(asset.size) }}</p>
+                                <p
+                                    class="truncate text-xs font-semibold text-white"
+                                >
+                                    {{ asset.original_filename }}
+                                </p>
+                                <p class="text-xs text-white/70">
+                                    {{ formatFileSize(asset.size) }}
+                                </p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div v-if="uploadsHasMore" ref="uploadsSentinel" class="mt-4 flex justify-center">
-                    <IconLoader2 v-if="uploadsLoadingMore" class="size-5 animate-spin text-foreground/60" />
+                <div
+                    v-if="uploadsHasMore"
+                    ref="uploadsSentinel"
+                    class="mt-4 flex justify-center"
+                >
+                    <IconLoader2
+                        v-if="uploadsLoadingMore"
+                        class="size-5 animate-spin text-foreground/60"
+                    />
                 </div>
             </TabsContent>
 

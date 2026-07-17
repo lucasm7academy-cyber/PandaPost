@@ -195,6 +195,7 @@ const initialTabFromQuery = (() => {
 })();
 const initialHighlightCommentId = queryParams?.get('comment') ?? null;
 const activeTab = ref(initialTabFromQuery);
+const activeMobileView = ref<'composer' | 'sidebar'>('composer');
 const deleteModal = ref<InstanceType<typeof ConfirmDeleteModal> | null>(null);
 const editorSidebarRef = ref<InstanceType<typeof PostEditorSidebar> | null>(null);
 
@@ -355,6 +356,26 @@ usePostEcho(post.value.id, '.post.comment.created', (e: any) => {
                 @submit="submit"
             />
 
+            <!-- Mobile Tab Selector (visible only on mobile < lg) -->
+            <div class="flex border-b-2 border-foreground bg-card lg:hidden shrink-0">
+                <button
+                    type="button"
+                    class="flex-1 py-3 text-center text-sm font-bold border-r-2 border-foreground transition-colors"
+                    :class="activeMobileView === 'composer' ? 'bg-violet-200 text-foreground' : 'bg-background hover:bg-muted text-foreground'"
+                    @click="activeMobileView = 'composer'"
+                >
+                    {{ $t('posts.edit.tabs.editor') }}
+                </button>
+                <button
+                    type="button"
+                    class="flex-1 py-3 text-center text-sm font-bold transition-colors"
+                    :class="activeMobileView === 'sidebar' ? 'bg-violet-200 text-foreground' : 'bg-background hover:bg-muted text-foreground'"
+                    @click="activeMobileView = 'sidebar'"
+                >
+                    {{ $t('posts.edit.tabs.preview_settings') }}
+                </button>
+            </div>
+
             <div class="relative flex-1 overflow-hidden">
                 <div
                     v-if="isPublishing"
@@ -377,7 +398,10 @@ usePostEcho(post.value.id, '.post.comment.created', (e: any) => {
                     class="flex h-full"
                     :class="{ 'pointer-events-none select-none opacity-60': isScheduled }"
                 >
-                    <div class="w-full overflow-y-auto lg:w-2/3 lg:border-r-2 lg:border-foreground">
+                    <div
+                        class="w-full overflow-y-auto lg:w-2/3 lg:border-r-2 lg:border-foreground"
+                        :class="activeMobileView === 'composer' ? 'block' : 'hidden lg:block'"
+                    >
                         <PostEditorComposer
                             v-model:content="content"
                             v-model:media="media"
@@ -389,7 +413,10 @@ usePostEcho(post.value.id, '.post.comment.created', (e: any) => {
                         />
                     </div>
 
-                    <div class="hidden lg:block lg:w-1/3 overflow-hidden">
+                    <div
+                        class="overflow-hidden"
+                        :class="activeMobileView === 'sidebar' ? 'block w-full lg:w-1/3' : 'hidden lg:block lg:w-1/3'"
+                    >
                         <PostEditorSidebar
                             ref="editorSidebarRef"
                             v-model:active-tab="activeTab"

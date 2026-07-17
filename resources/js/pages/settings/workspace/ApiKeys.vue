@@ -65,7 +65,7 @@ const tabs = computed(() => [
     <Head :title="$t('settings.api_keys.page_title')" />
 
     <AppLayout>
-        <div class="mx-auto max-w-4xl space-y-8 px-6 py-8">
+        <div class="mx-auto max-w-4xl space-y-6 md:space-y-8 px-4 md:px-6 py-6 md:py-8">
             <PageHeader
                 :title="$t('settings.hub.title')"
                 :description="$t('settings.hub.description')"
@@ -73,12 +73,12 @@ const tabs = computed(() => [
 
             <SettingsTabsNav :tabs="tabs" active="api-keys" />
 
-            <div class="flex items-center justify-between gap-4">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <HeadingSmall
                     :title="$t('settings.api_keys.heading')"
                     :description="$t('settings.api_keys.description')"
                 />
-                <Button @click="createDialogOpen = true">
+                <Button @click="createDialogOpen = true" class="w-full sm:w-auto">
                     {{ $t('settings.api_keys.create') }}
                 </Button>
             </div>
@@ -107,8 +107,8 @@ const tabs = computed(() => [
             </div>
 
             <div v-if="apiTokens.length > 0">
-                <Table>
-                    <TableHeader>
+                <Table class="block md:table">
+                    <TableHeader class="hidden md:table-header-group">
                         <TableRow>
                             <TableHead>{{ $t('settings.api_keys.table.name') }}</TableHead>
                             <TableHead>{{ $t('settings.api_keys.table.expires') }}</TableHead>
@@ -116,16 +116,63 @@ const tabs = computed(() => [
                             <TableHead class="w-10" />
                         </TableRow>
                     </TableHeader>
-                    <TableBody>
-                        <TableRow v-for="token in apiTokens" :key="token.id">
-                            <TableCell>{{ token.name }}</TableCell>
-                            <TableCell>
+                    <TableBody class="block md:table-row-group">
+                        <TableRow
+                            v-for="token in apiTokens"
+                            :key="token.id"
+                            class="block md:table-row border-b border-muted/60 md:border-b-0 py-4 md:py-0"
+                        >
+                            <TableCell class="block md:table-cell p-0 md:px-4 md:py-3 w-full md:w-auto">
+                                <!-- Desktop View -->
+                                <span class="hidden md:inline">{{ token.name }}</span>
+
+                                <!-- Mobile View Card -->
+                                <div class="flex flex-col gap-2 md:hidden">
+                                    <div class="flex items-center justify-between gap-2">
+                                        <span class="font-medium text-foreground text-base">{{ token.name }}</span>
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger as-child>
+                                                <Button variant="outline" size="icon" class="size-8">
+                                                    <IconDots class="size-4" />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                                <DropdownMenuItem
+                                                    @click="copyToClipboard(token.id, trans('settings.api_keys.actions.copy_id_success'))"
+                                                >
+                                                    <IconCopy class="size-4" />
+                                                    {{ $t('settings.api_keys.actions.copy_id') }}
+                                                </DropdownMenuItem>
+                                                <DropdownMenuSeparator />
+                                                <DropdownMenuItem
+                                                    variant="destructive"
+                                                    @click="confirmDeleteModal?.open({ url: ApiKeyController.destroy.url(token.id), confirmText: token.name })"
+                                                >
+                                                    <IconTrash class="size-4" />
+                                                    {{ $t('settings.api_keys.actions.delete') }}
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </div>
+                                    <div class="text-sm text-muted-foreground flex flex-col gap-1">
+                                        <div>
+                                            <span class="font-semibold">{{ $t('settings.api_keys.table.expires') }}:</span>
+                                            {{ token.expires_at ? date.formatDate(token.expires_at) : $t('settings.api_keys.table.never') }}
+                                        </div>
+                                        <div>
+                                            <span class="font-semibold">{{ $t('settings.api_keys.table.last_used') }}:</span>
+                                            {{ token.last_used_at ? date.diffForHumans(token.last_used_at) : $t('settings.api_keys.table.never') }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </TableCell>
+                            <TableCell class="hidden md:table-cell">
                                 {{ token.expires_at ? date.formatDate(token.expires_at) : $t('settings.api_keys.table.never') }}
                             </TableCell>
-                            <TableCell>
+                            <TableCell class="hidden md:table-cell">
                                 {{ token.last_used_at ? date.diffForHumans(token.last_used_at) : $t('settings.api_keys.table.never') }}
                             </TableCell>
-                            <TableCell>
+                            <TableCell class="hidden md:table-cell">
                                 <DropdownMenu>
                                     <DropdownMenuTrigger as-child>
                                         <Button variant="outline" size="icon" class="size-8">

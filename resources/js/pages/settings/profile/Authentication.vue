@@ -77,7 +77,7 @@ const logoutDialogOpen = ref(false);
     <Head :title="$t('settings.authentication.page_title')" />
 
     <AppLayout>
-        <div class="mx-auto max-w-4xl space-y-8 px-6 py-8">
+        <div class="mx-auto max-w-4xl space-y-6 md:space-y-8 px-4 md:px-6 py-6 md:py-8">
             <PageHeader
                 :title="$t('settings.hub.title')"
                 :description="$t('settings.hub.description')"
@@ -124,7 +124,7 @@ const logoutDialogOpen = ref(false);
                                         {{ $t('settings.authentication.sessions.on') }} {{ parseOsName(session.user_agent) }}
                                     </span>
                                 </div>
-                                <div class="flex items-center gap-1.5 text-xs font-medium text-foreground/60">
+                                <div class="flex flex-wrap items-center gap-1.5 text-xs font-medium text-foreground/60">
                                     <span>{{ session.ip_address ?? $t('settings.authentication.sessions.unknown_ip') }}</span>
                                     <span aria-hidden="true">·</span>
                                     <template v-if="session.is_current">
@@ -150,6 +150,7 @@ const logoutDialogOpen = ref(false);
                                 variant="outline"
                                 data-test="log-out-other-sessions-button"
                                 :disabled="sessions.length <= 1"
+                                class="w-full sm:w-auto"
                             >
                                 {{ $t('settings.authentication.sessions.log_out_others') }}
                             </Button>
@@ -260,7 +261,7 @@ const logoutDialogOpen = ref(false);
                             <InputError :message="errors.password_confirmation" />
                         </div>
 
-                        <Button :disabled="processing" data-test="update-password-button">
+                        <Button :disabled="processing" data-test="update-password-button" class="w-full sm:w-auto">
                             {{ hasPassword
                                 ? $t('settings.authentication.password.save')
                                 : $t('settings.authentication.password.set') }}
@@ -280,56 +281,62 @@ const logoutDialogOpen = ref(false);
                         <div
                             v-for="account in connectedAccounts"
                             :key="account.provider"
-                            class="flex items-center gap-4 rounded-xl border-2 border-foreground bg-card p-4 shadow-2xs"
+                            class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border-2 border-foreground bg-card p-4 shadow-2xs"
                             :data-test="`connected-account-${account.provider}`"
                         >
-                            <div class="inline-flex size-10 rotate-1 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl border-2 border-foreground bg-card shadow-2xs">
-                                <img
-                                    :src="`/images/social/${account.provider}.svg`"
-                                    :alt="account.label"
-                                    class="size-6"
-                                />
+                            <div class="flex items-center gap-4">
+                                <div class="inline-flex size-10 rotate-1 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl border-2 border-foreground bg-card shadow-2xs">
+                                    <img
+                                        :src="`/images/social/${account.provider}.svg`"
+                                        :alt="account.label"
+                                        class="size-6"
+                                    />
+                                </div>
+                                <div class="space-y-0.5">
+                                    <div class="text-sm font-bold text-foreground">{{ account.label }}</div>
+                                    <div
+                                        v-if="account.connected"
+                                        class="flex items-center gap-1.5 text-xs font-bold text-emerald-700"
+                                    >
+                                        <span class="size-1.5 rounded-full bg-emerald-500" />
+                                        <span>{{ $t('settings.authentication.providers.connected') }}</span>
+                                    </div>
+                                    <div v-else class="text-xs font-medium text-foreground/60">
+                                        {{ $t('settings.authentication.providers.not_connected') }}
+                                    </div>
+                                </div>
                             </div>
-                            <div class="flex-1 space-y-0.5">
-                                <div class="text-sm font-bold text-foreground">{{ account.label }}</div>
-                                <div
-                                    v-if="account.connected"
-                                    class="flex items-center gap-1.5 text-xs font-bold text-emerald-700"
+                            <div class="flex sm:block w-full sm:w-auto">
+                                <Form
+                                    v-if="account.connected && account.can_disconnect"
+                                    v-bind="AuthenticationController.disconnectProvider.form(account.provider)"
+                                    :options="{ preserveScroll: true }"
+                                    class="w-full sm:w-auto"
+                                    #default="{ processing }"
                                 >
-                                    <span class="size-1.5 rounded-full bg-emerald-500" />
-                                    <span>{{ $t('settings.authentication.providers.connected') }}</span>
-                                </div>
-                                <div v-else class="text-xs font-medium text-foreground/60">
-                                    {{ $t('settings.authentication.providers.not_connected') }}
-                                </div>
-                            </div>
-                            <Form
-                                v-if="account.connected && account.can_disconnect"
-                                v-bind="AuthenticationController.disconnectProvider.form(account.provider)"
-                                :options="{ preserveScroll: true }"
-                                #default="{ processing }"
-                            >
+                                    <Button
+                                        type="submit"
+                                        variant="outline"
+                                        size="sm"
+                                        :disabled="processing"
+                                        class="w-full sm:w-auto bg-rose-100 text-rose-700 hover:bg-rose-200"
+                                        :data-test="`disconnect-${account.provider}`"
+                                    >
+                                        {{ $t('settings.authentication.providers.disconnect') }}
+                                    </Button>
+                                </Form>
                                 <Button
-                                    type="submit"
+                                    v-else-if="!account.connected"
                                     variant="outline"
                                     size="sm"
-                                    :disabled="processing"
-                                    class="bg-rose-100 text-rose-700 hover:bg-rose-200"
-                                    :data-test="`disconnect-${account.provider}`"
+                                    as="a"
+                                    :href="connectProvider(account.provider).url"
+                                    class="w-full sm:w-auto"
+                                    :data-test="`connect-${account.provider}`"
                                 >
-                                    {{ $t('settings.authentication.providers.disconnect') }}
+                                    {{ $t('settings.authentication.providers.connect') }}
                                 </Button>
-                            </Form>
-                            <Button
-                                v-else-if="!account.connected"
-                                variant="outline"
-                                size="sm"
-                                as="a"
-                                :href="connectProvider(account.provider).url"
-                                :data-test="`connect-${account.provider}`"
-                            >
-                                {{ $t('settings.authentication.providers.connect') }}
-                            </Button>
+                            </div>
                         </div>
                     </div>
                 </div>

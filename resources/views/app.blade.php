@@ -3,6 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="tiktok-developers-site-verification" content="hdX7vv4aiphwU0tylM5oKcvERhT7igiG" />
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         @include('partials.gtm')
@@ -15,11 +16,10 @@
             }
         </style>
 
-        <title data-inertia>{{ config('app.name', 'TryPost.it') }}</title>
+        <title data-inertia>{{ config('app.name', 'PandaPost.com.br') }}</title>
 
-        <link rel="icon" href="/favicon.ico" sizes="any">
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+        <link rel="icon" type="image/png" href="/images/trypost/icon.png">
+        <link rel="apple-touch-icon" href="/images/trypost/icon.png">
 
         <!-- Fonts: Figtree (UI), Instrument Serif (display headlines),
              JetBrains Mono (code/numbers). Mirrors the marketing site. -->

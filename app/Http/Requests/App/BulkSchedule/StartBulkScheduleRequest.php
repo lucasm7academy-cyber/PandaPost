@@ -34,7 +34,7 @@ class StartBulkScheduleRequest extends FormRequest
 
             'timezone' => ['required', 'string', 'timezone'],
 
-            'prompt' => ['required', 'string', 'min:3', 'max:2000'],
+            'prompt' => ['required', 'string', 'min:3', 'max:65000'],
             
             'signature_id' => ['nullable', 'uuid', 'exists:workspace_signatures,id'],
         ];

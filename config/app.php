@@ -15,7 +15,7 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'TryPost.it'),
+    'name' => env('APP_NAME', 'PandaPost'),
 
     /*
     |--------------------------------------------------------------------------
@@ -54,7 +54,7 @@ return [
     |
     */
 
-    'url' => env('APP_URL', 'https://trypost.it'),
+    'url' => env('APP_URL', 'https://pandapost.com.br'),
 
     /*
     |--------------------------------------------------------------------------

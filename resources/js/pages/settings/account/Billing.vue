@@ -76,7 +76,7 @@ const { openUpgrade } = useUpgradeDialog();
     <Head :title="$t('billing.title')" />
 
     <AppLayout>
-        <div class="mx-auto max-w-4xl space-y-8 px-6 py-8">
+        <div class="mx-auto max-w-4xl space-y-8 px-4 py-6 sm:px-6 sm:py-8">
             <PageHeader
                 :title="$t('settings.hub.title')"
                 :description="$t('settings.hub.description')"
@@ -92,8 +92,8 @@ const { openUpgrade } = useUpgradeDialog();
                         :description="$t('billing.plan.description')"
                     />
 
-                    <div class="rounded-2xl border-2 border-foreground bg-card p-6 shadow-2xs">
-                        <div class="flex items-start justify-between gap-6">
+                    <div class="rounded-2xl border-2 border-foreground bg-card p-4 sm:p-6 shadow-2xs">
+                        <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-6">
                             <div class="space-y-2">
                                 <p class="text-[11px] font-black uppercase tracking-widest text-foreground/60">
                                     {{ $t('billing.plan.label') }}
@@ -124,11 +124,11 @@ const { openUpgrade } = useUpgradeDialog();
                                     {{ $t('billing.plan.trial_ends') }}: <span class="text-foreground">{{ date.formatDate(trialEndsAt) }}</span>
                                 </p>
                             </div>
-                            <div class="flex flex-col items-end gap-4 shrink-0">
-                                <span class="inline-flex size-14 -rotate-3 items-center justify-center rounded-2xl border-2 border-foreground bg-amber-200 shadow-2xs">
+                            <div class="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-4 shrink-0 w-full sm:w-auto">
+                                <span class="inline-flex size-14 -rotate-3 items-center justify-center rounded-2xl border-2 border-foreground bg-amber-200 shadow-2xs hidden sm:inline-flex">
                                     <IconSparkles class="size-7 text-foreground" stroke-width="2" />
                                 </span>
-                                <Button @click="openUpgrade()">
+                                <Button @click="openUpgrade()" class="w-full sm:w-auto">
                                     {{ $t('billing.plan.change') }}
                                 </Button>
                             </div>
@@ -143,33 +143,35 @@ const { openUpgrade } = useUpgradeDialog();
                         :description="$t('billing.subscription.description')"
                     />
 
-                    <div class="flex flex-wrap items-center gap-4 rounded-2xl border-2 border-foreground bg-card p-4 shadow-2xs">
-                        <span class="inline-flex size-12 rotate-2 items-center justify-center rounded-2xl border-2 border-foreground bg-violet-200 shadow-2xs">
-                            <IconCreditCard class="size-6 text-foreground" stroke-width="2" />
-                        </span>
-                        <div v-if="defaultPaymentMethod" class="min-w-0 flex-1">
-                            <p class="text-[11px] font-black uppercase tracking-widest text-foreground/60">
-                                {{ $t('billing.subscription.payment_method') }}
-                            </p>
-                            <p class="text-base font-bold capitalize text-foreground">
-                                {{ defaultPaymentMethod.brand }} •••• {{ defaultPaymentMethod.last4 }}
-                            </p>
-                            <p class="text-xs font-medium text-foreground/60">
-                                {{ $t('billing.subscription.expires_on', {
-                                    month: defaultPaymentMethod.exp_month.toString().padStart(2, '0'),
-                                    year: defaultPaymentMethod.exp_year.toString(),
-                                }) }}
-                            </p>
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-4 rounded-2xl border-2 border-foreground bg-card p-4 shadow-2xs">
+                        <div class="flex items-center gap-4 w-full sm:w-auto min-w-0 flex-1 sm:flex-initial">
+                            <span class="inline-flex size-12 rotate-2 items-center justify-center rounded-2xl border-2 border-foreground bg-violet-200 shadow-2xs shrink-0">
+                                <IconCreditCard class="size-6 text-foreground" stroke-width="2" />
+                            </span>
+                            <div v-if="defaultPaymentMethod" class="min-w-0 flex-1">
+                                <p class="text-[11px] font-black uppercase tracking-widest text-foreground/60">
+                                    {{ $t('billing.subscription.payment_method') }}
+                                </p>
+                                <p class="text-base font-bold capitalize text-foreground truncate">
+                                    {{ defaultPaymentMethod.brand }} •••• {{ defaultPaymentMethod.last4 }}
+                                </p>
+                                <p class="text-xs font-medium text-foreground/60">
+                                    {{ $t('billing.subscription.expires_on', {
+                                        month: defaultPaymentMethod.exp_month.toString().padStart(2, '0'),
+                                        year: defaultPaymentMethod.exp_year.toString(),
+                                    }) }}
+                                </p>
+                            </div>
+                            <div v-else class="min-w-0 flex-1">
+                                <p class="text-[11px] font-black uppercase tracking-widest text-foreground/60">
+                                    {{ $t('billing.subscription.payment_method') }}
+                                </p>
+                                <p class="text-sm font-semibold text-foreground/70">
+                                    {{ $t('billing.subscription.no_payment_method') }}
+                                </p>
+                            </div>
                         </div>
-                        <div v-else class="min-w-0 flex-1">
-                            <p class="text-[11px] font-black uppercase tracking-widest text-foreground/60">
-                                {{ $t('billing.subscription.payment_method') }}
-                            </p>
-                            <p class="text-sm font-semibold text-foreground/70">
-                                {{ $t('billing.subscription.no_payment_method') }}
-                            </p>
-                        </div>
-                        <Button as="a" :href="portal.url()" class="shrink-0">
+                        <Button as="a" :href="portal.url()" class="w-full sm:w-auto shrink-0 text-center justify-center">
                             {{ $t('billing.subscription.manage_stripe') }}
                         </Button>
                     </div>
@@ -186,27 +188,31 @@ const { openUpgrade } = useUpgradeDialog();
                         <div
                             v-for="invoice in invoices"
                             :key="invoice.id"
-                            class="flex items-center gap-4 rounded-xl border-2 border-foreground bg-card p-4 shadow-2xs"
+                            class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border-2 border-foreground bg-card p-4 shadow-2xs"
                         >
-                            <span class="inline-flex size-10 -rotate-2 items-center justify-center rounded-2xl border-2 border-foreground bg-violet-100 shadow-2xs">
-                                <IconFileText class="size-5 text-foreground" stroke-width="2" />
-                            </span>
-                            <div class="min-w-0 flex-1">
-                                <p class="text-sm font-bold text-foreground">{{ date.formatDate(invoice.date) }}</p>
-                                <p class="text-xs font-medium tabular-nums text-foreground/60">{{ invoice.total }}</p>
+                            <div class="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+                                <span class="inline-flex size-10 -rotate-2 items-center justify-center rounded-2xl border-2 border-foreground bg-violet-100 shadow-2xs shrink-0">
+                                    <IconFileText class="size-5 text-foreground" stroke-width="2" />
+                                </span>
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-sm font-bold text-foreground truncate">{{ date.formatDate(invoice.date) }}</p>
+                                    <p class="text-xs font-medium tabular-nums text-foreground/60">{{ invoice.total }}</p>
+                                </div>
                             </div>
-                            <Badge :variant="invoice.status === 'paid' ? 'success' : 'outline'">
-                                {{ invoice.status === 'paid' ? $t('billing.invoices.paid') : invoice.status }}
-                            </Badge>
-                            <Button
-                                variant="outline"
-                                size="icon"
-                                as="a"
-                                :href="invoice.invoice_pdf"
-                                target="_blank"
-                            >
-                                <IconDownload class="size-4" />
-                            </Button>
+                            <div class="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto border-t sm:border-t-0 pt-3 sm:pt-0 border-foreground/10">
+                                <Badge :variant="invoice.status === 'paid' ? 'success' : 'outline'">
+                                    {{ invoice.status === 'paid' ? $t('billing.invoices.paid') : invoice.status }}
+                                </Badge>
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    as="a"
+                                    :href="invoice.invoice_pdf"
+                                    target="_blank"
+                                >
+                                    <IconDownload class="size-4" />
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 </div>

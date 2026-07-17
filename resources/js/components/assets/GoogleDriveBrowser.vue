@@ -2,7 +2,6 @@
 import { usePage } from '@inertiajs/vue3';
 import {
     IconBrandGoogleDrive,
-    IconCheck,
     IconFolderOpen,
     IconLoader2,
     IconPhoto,
@@ -16,7 +15,10 @@ import EmptyState from '@/components/EmptyState.vue';
 import GoogleDriveConnect from '@/components/assets/GoogleDriveConnect.vue';
 import { Skeleton } from '@/components/ui/skeleton';
 import { download as downloadFromFolder } from '@/routes/app/assets/google-drive/from-folder';
-import { files as folderFilesRoute, index as foldersRoute } from '@/routes/app/workspace/google-drive-folders';
+import {
+    files as folderFilesRoute,
+    index as foldersRoute,
+} from '@/routes/app/workspace/google-drive-folders';
 
 interface GoogleDriveFolder {
     id: string;
@@ -60,7 +62,9 @@ const emit = defineEmits<{
 }>();
 
 const page = usePage();
-const workspace = computed(() => page.props.auth.currentWorkspace as { id: string } | null);
+const workspace = computed(
+    () => page.props.auth.currentWorkspace as { id: string } | null,
+);
 
 const folders = ref<GoogleDriveFolder[]>([]);
 const files = ref<GoogleDriveFile[]>([]);
@@ -78,23 +82,33 @@ const selectedDriveIds = computed(
         new Set(
             props.selected
                 .filter((m) => m.source === 'google-drive')
-                .map((m) => (m.meta as { google_drive_id?: string } | undefined)?.google_drive_id)
+                .map(
+                    (m) =>
+                        (m.meta as { google_drive_id?: string } | undefined)
+                            ?.google_drive_id,
+                )
                 .filter((v): v is string => !!v),
         ),
 );
-const isFileSelected = (fileId: string) => selectedDriveIds.value.has(fileId) || optimisticSelectedIds.value.has(fileId);
+const isFileSelected = (fileId: string) =>
+    selectedDriveIds.value.has(fileId) ||
+    optimisticSelectedIds.value.has(fileId);
 const selectionIndex = (id: string) => {
     // Check if it's actually in props.selected
-    const idx = props.selected.findIndex(m => m.id === id || (m.meta as { google_drive_id?: string })?.google_drive_id === id);
+    const idx = props.selected.findIndex(
+        (m) =>
+            m.id === id ||
+            (m.meta as { google_drive_id?: string })?.google_drive_id === id,
+    );
     if (idx !== -1) return idx + 1;
-    
+
     // Find index in optimistic set
     const optimisticArray = Array.from(optimisticSelectedIds.value);
     const optimisticIdx = optimisticArray.indexOf(id);
     if (optimisticIdx !== -1) {
         return props.selected.length + optimisticIdx + 1;
     }
-    
+
     return props.selected.length + 1;
 };
 
@@ -109,13 +123,18 @@ const loadFolders = async () => {
     try {
         const url = foldersRoute.url({ workspace: workspace.value.id });
         const response = await fetch(url, {
-            headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            headers: {
+                Accept: 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
             credentials: 'same-origin',
         });
         if (!response.ok) {
             throw new Error('Failed to load folders');
         }
-        const data = (await response.json()) as { folders: GoogleDriveFolder[] };
+        const data = (await response.json()) as {
+            folders: GoogleDriveFolder[];
+        };
         folders.value = data.folders.filter((f) => f.is_active);
         hasConnection.value = true;
     } catch (error) {
@@ -137,16 +156,28 @@ const loadFiles = async (folder: GoogleDriveFolder) => {
     lastSelectedFileIndex.value = null;
 
     try {
-        const url = folderFilesRoute.url({ workspace: workspace.value.id, folder: folder.id });
+        const url = folderFilesRoute.url({
+            workspace: workspace.value.id,
+            folder: folder.id,
+        });
         const response = await fetch(url, {
-            headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            headers: {
+                Accept: 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
             credentials: 'same-origin',
         });
 
-        const data = (await response.json()) as { files?: GoogleDriveFile[]; error?: string };
+        const data = (await response.json()) as {
+            files?: GoogleDriveFile[];
+            error?: string;
+        };
 
         if (!response.ok) {
-            if (data.error === 'Google Drive not connected' || response.status === 400) {
+            if (
+                data.error === 'Google Drive not connected' ||
+                response.status === 400
+            ) {
                 hasConnection.value = false;
                 selectedFolder.value = null;
                 toast.error(trans('assets.google_drive.error_no_connection'));
@@ -169,22 +200,28 @@ const loadFiles = async (folder: GoogleDriveFolder) => {
 
 const processDownloadQueue = async () => {
     if (isQueueProcessing.value || downloadQueue.value.length === 0) return;
-    
+
     isQueueProcessing.value = true;
-    
+
     while (downloadQueue.value.length > 0) {
         const file = downloadQueue.value.shift();
         if (!file) continue;
-        
+
         if (selectedDriveIds.value.has(file.id)) {
             continue;
         }
 
         downloadingIds.value.add(file.id);
         try {
-            const csrfToken = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '';
+            const csrfToken =
+                document.querySelector<HTMLMetaElement>(
+                    'meta[name="csrf-token"]',
+                )?.content ?? '';
             const response = await fetch(
-                downloadFromFolder.url({ workspace: workspace.value!.id, folder: selectedFolder.value!.id }),
+                downloadFromFolder.url({
+                    workspace: workspace.value!.id,
+                    folder: selectedFolder.value!.id,
+                }),
                 {
                     method: 'POST',
                     headers: {
@@ -203,8 +240,13 @@ const processDownloadQueue = async () => {
             );
 
             if (!response.ok) {
-                const errorData = (await response.json().catch(() => ({}))) as { error?: string };
-                toast.error(errorData.error || trans('assets.google_drive.error_loading'));
+                const errorData = (await response.json().catch(() => ({}))) as {
+                    error?: string;
+                };
+                toast.error(
+                    errorData.error ||
+                        trans('assets.google_drive.error_loading'),
+                );
                 optimisticSelectedIds.value.delete(file.id);
                 continue;
             }
@@ -213,7 +255,9 @@ const processDownloadQueue = async () => {
             emit('update:selected', [...props.selected, media]);
 
             if (props.mode === 'standalone') {
-                toast.success(trans('assets.google_drive.imported', { name: file.name }));
+                toast.success(
+                    trans('assets.google_drive.imported', { name: file.name }),
+                );
             }
         } catch (error) {
             console.error(error);
@@ -223,7 +267,7 @@ const processDownloadQueue = async () => {
             downloadingIds.value.delete(file.id);
         }
     }
-    
+
     isQueueProcessing.value = false;
 };
 
@@ -231,26 +275,37 @@ const enqueueFile = (file: GoogleDriveFile) => {
     if (!workspace.value || !selectedFolder.value) {
         return;
     }
-    if (optimisticSelectedIds.value.has(file.id) || selectedDriveIds.value.has(file.id)) {
+    if (
+        optimisticSelectedIds.value.has(file.id) ||
+        selectedDriveIds.value.has(file.id)
+    ) {
         return;
     }
-    
+
     optimisticSelectedIds.value.add(file.id);
     downloadQueue.value.push(file);
     void processDownloadQueue();
 };
 
-const pickFile = (file: GoogleDriveFile, event?: MouseEvent, index?: number) => {
+const pickFile = (
+    file: GoogleDriveFile,
+    event?: MouseEvent,
+    index?: number,
+) => {
     if (!workspace.value || !selectedFolder.value) {
         return;
     }
 
-    if (event?.shiftKey && lastSelectedFileIndex.value !== null && index !== undefined) {
+    if (
+        event?.shiftKey &&
+        lastSelectedFileIndex.value !== null &&
+        index !== undefined
+    ) {
         const start = Math.min(lastSelectedFileIndex.value, index);
         const end = Math.max(lastSelectedFileIndex.value, index);
         const filesToSelect = files.value.slice(start, end + 1);
 
-        const newFiles = filesToSelect.filter(f => !isFileSelected(f.id));
+        const newFiles = filesToSelect.filter((f) => !isFileSelected(f.id));
 
         for (const f of newFiles) {
             enqueueFile(f);
@@ -264,14 +319,17 @@ const pickFile = (file: GoogleDriveFile, event?: MouseEvent, index?: number) => 
     // Toggle off if already in selection.
     if (isFileSelected(file.id)) {
         optimisticSelectedIds.value.delete(file.id);
-        
-        const queueIndex = downloadQueue.value.findIndex(f => f.id === file.id);
+
+        const queueIndex = downloadQueue.value.findIndex(
+            (f) => f.id === file.id,
+        );
         if (queueIndex > -1) {
             downloadQueue.value.splice(queueIndex, 1);
         }
-        
+
         const next = props.selected.filter((m) => {
-            const driveId = (m.meta as { google_drive_id?: string } | undefined)?.google_drive_id;
+            const driveId = (m.meta as { google_drive_id?: string } | undefined)
+                ?.google_drive_id;
             return driveId !== file.id;
         });
         emit('update:selected', next);
@@ -299,10 +357,20 @@ onMounted(async () => {
 
 <template>
     <div>
-        <GoogleDriveConnect v-if="hasConnection === false" @connected="handleConnected" />
+        <GoogleDriveConnect
+            v-if="hasConnection === false"
+            @connected="handleConnected"
+        />
 
-        <div v-else-if="loading && folders.length === 0" class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-            <Skeleton v-for="i in 8" :key="i" class="aspect-square rounded-xl" />
+        <div
+            v-else-if="loading && folders.length === 0"
+            class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
+        >
+            <Skeleton
+                v-for="i in 8"
+                :key="i"
+                class="aspect-square rounded-xl"
+            />
         </div>
 
         <EmptyState
@@ -322,12 +390,18 @@ onMounted(async () => {
                 @click="loadFiles(folder)"
             >
                 <div class="flex min-w-0 flex-1 items-center gap-3">
-                    <div class="flex size-12 flex-shrink-0 items-center justify-center rounded-lg bg-violet-100">
+                    <div
+                        class="flex size-12 flex-shrink-0 items-center justify-center rounded-lg bg-violet-100"
+                    >
                         <IconFolderOpen class="size-6 text-violet-600" />
                     </div>
                     <div class="min-w-0 flex-1">
-                        <p class="truncate font-semibold text-foreground">{{ folder.folder_name }}</p>
-                        <p class="truncate text-sm text-muted-foreground">{{ folder.folder_id }}</p>
+                        <p class="truncate font-semibold text-foreground">
+                            {{ folder.folder_name }}
+                        </p>
+                        <p class="truncate text-sm text-muted-foreground">
+                            {{ folder.folder_id }}
+                        </p>
                     </div>
                 </div>
             </button>
@@ -338,32 +412,57 @@ onMounted(async () => {
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <IconFolderOpen class="size-5 text-violet-600" />
-                    <h3 class="text-lg font-semibold">{{ selectedFolder.folder_name }}</h3>
+                    <h3 class="text-lg font-semibold">
+                        {{ selectedFolder.folder_name }}
+                    </h3>
                 </div>
-                <button type="button" class="text-sm text-blue-600 hover:underline" @click="goBackToFolders">
+                <button
+                    type="button"
+                    class="text-sm text-blue-600 hover:underline"
+                    @click="goBackToFolders"
+                >
                     ← {{ trans('common.back') }}
                 </button>
             </div>
 
-            <div v-if="loading" class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-                <Skeleton v-for="i in 8" :key="i" class="aspect-square rounded-xl" />
+            <div
+                v-if="loading"
+                class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
+            >
+                <Skeleton
+                    v-for="i in 8"
+                    :key="i"
+                    class="aspect-square rounded-xl"
+                />
             </div>
 
-            <div v-else-if="files.length === 0" class="py-8 text-center text-muted-foreground">
+            <div
+                v-else-if="files.length === 0"
+                class="py-8 text-center text-muted-foreground"
+            >
                 {{ trans('assets.google_drive.no_files') }}
             </div>
 
-            <div v-else class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+            <div
+                v-else
+                class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
+            >
                 <button
                     v-for="(file, index) in files"
                     :key="file.id"
                     type="button"
                     class="group relative cursor-pointer overflow-hidden rounded-xl border-2 border-foreground bg-muted text-left shadow-2xs transition-all hover:-translate-y-0.5 hover:shadow-md"
-                    :class="[isFileSelected(file.id) || downloadingIds.has(file.id) ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : '']"
+                    :class="[
+                        isFileSelected(file.id) || downloadingIds.has(file.id)
+                            ? 'ring-2 ring-primary ring-offset-2 ring-offset-background'
+                            : '',
+                    ]"
                     :disabled="downloadingIds.has(file.id)"
                     @click="pickFile(file, $event, index)"
                 >
-                    <div class="flex aspect-square items-center justify-center bg-muted">
+                    <div
+                        class="flex aspect-square items-center justify-center bg-muted"
+                    >
                         <img
                             v-if="file.thumbnailLink && isImage(file.mimeType)"
                             :src="file.thumbnailLink"
@@ -380,13 +479,23 @@ onMounted(async () => {
                             referrerpolicy="no-referrer"
                             loading="lazy"
                         />
-                        <IconVideo v-else-if="isVideo(file.mimeType)" class="size-10 text-foreground/50" />
+                        <IconVideo
+                            v-else-if="isVideo(file.mimeType)"
+                            class="size-10 text-foreground/50"
+                        />
                         <IconPhoto v-else class="size-10 text-foreground/50" />
                     </div>
 
                     <div class="space-y-0.5 bg-card p-2">
-                        <p class="truncate text-xs font-semibold text-foreground" :title="file.name">{{ file.name }}</p>
-                        <p class="truncate text-xs text-muted-foreground">{{ file.mimeType }}</p>
+                        <p
+                            class="truncate text-xs font-semibold text-foreground"
+                            :title="file.name"
+                        >
+                            {{ file.name }}
+                        </p>
+                        <p class="truncate text-xs text-muted-foreground">
+                            {{ file.mimeType }}
+                        </p>
                     </div>
 
                     <div
@@ -397,8 +506,11 @@ onMounted(async () => {
                     </div>
 
                     <div
-                        v-if="isFileSelected(file.id) || downloadingIds.has(file.id)"
-                        class="absolute right-2 top-2 z-10 inline-flex size-6 items-center justify-center rounded-full border-2 border-foreground bg-primary text-xs font-bold text-primary-foreground shadow-2xs"
+                        v-if="
+                            isFileSelected(file.id) ||
+                            downloadingIds.has(file.id)
+                        "
+                        class="absolute top-2 right-2 z-10 inline-flex size-6 items-center justify-center rounded-full border-2 border-foreground bg-primary text-xs font-bold text-primary-foreground shadow-2xs"
                     >
                         {{ selectionIndex(file.id) }}
                     </div>

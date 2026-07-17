@@ -292,6 +292,8 @@ return [
         'unschedule_cta' => 'Desagendar para editar',
 
         'tabs' => [
+            'editor' => 'Editor',
+            'preview_settings' => 'Pré-visualização e configurações',
             'preview' => 'Pré-visualização',
             'schedule' => 'Agendamento',
             'comments' => 'Comentários',
@@ -592,11 +594,11 @@ return [
             'times_add' => 'Adicionar horário',
             'times_remove' => 'Remover horário',
 
-            'prompt_title' => 'Descreva as legendas',
-            'prompt_description' => 'A IA usa esse briefing para escrever uma legenda única por post.',
-            'prompt_label' => 'Briefing',
-            'prompt_placeholder' => 'Ex.: Destacar o lançamento da nova coleção — tom confiante, em português.',
-            'prompt_hint' => 'A IA vai gerar uma variação curta para cada post agendado.',
+            'prompt_title' => 'Títulos dos posts',
+            'prompt_description' => 'Defina o título (legenda) de cada post individualmente. O título inicial é preenchido com o nome do arquivo.',
+            'prompt_label' => 'Título',
+            'prompt_placeholder' => 'Digite o título...',
+            'prompt_hint' => 'O título do post pode ser editado individualmente acima.',
 
             'confirm_title' => 'Pronto para publicar',
             'confirm_description' => 'Confira a programação e confirme para enviar tudo para a fila.',

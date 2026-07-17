@@ -145,7 +145,7 @@ class PostController extends Controller
             'socialAccounts' => SocialAccountResource::collection(
                 $workspace->socialAccounts()->active()->get()
             ),
-            'signatures' => $workspace->signatures()->get(['id', 'name']),
+            'signatures' => $workspace->signatures()->get(['id', 'name', 'content']),
         ]);
     }
 

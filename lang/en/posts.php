@@ -292,6 +292,8 @@ return [
         'unschedule_cta' => 'Unschedule to edit',
 
         'tabs' => [
+            'editor' => 'Editor',
+            'preview_settings' => 'Preview & Settings',
             'preview' => 'Preview',
             'schedule' => 'Schedule',
             'comments' => 'Comments',
@@ -592,11 +594,11 @@ return [
             'times_add' => 'Add time',
             'times_remove' => 'Remove time',
 
-            'prompt_title' => 'Describe the captions',
-            'prompt_description' => 'AI uses this brief to write a unique caption per post.',
-            'prompt_label' => 'Brief',
-            'prompt_placeholder' => 'e.g. Highlight the launch of our new collection — confident tone, English.',
-            'prompt_hint' => 'AI will generate one short variation per scheduled post.',
+            'prompt_title' => 'Post titles',
+            'prompt_description' => 'Set the title (caption) for each post individually. The initial title is filled with the filename.',
+            'prompt_label' => 'Title',
+            'prompt_placeholder' => 'Enter the title...',
+            'prompt_hint' => 'The post title can be edited individually above.',
 
             'confirm_title' => 'Ready to publish',
             'confirm_description' => 'Review the schedule and confirm to send everything to your queue.',

@@ -173,7 +173,10 @@ export default {
      */
     formatUtcForDateTimeLocalInput(date: string | null | undefined): string {
         if (!date) return '';
-        return dayjs.utc(date).tz(getUserTimezone()).format('YYYY-MM-DDTHH:mm:00');
+        return dayjs
+            .utc(date)
+            .tz(getUserTimezone())
+            .format('YYYY-MM-DDTHH:mm:00');
     },
 
     /**

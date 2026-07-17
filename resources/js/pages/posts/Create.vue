@@ -26,7 +26,7 @@ interface Props {
      *  pre-schedules the new post on this date. */
     date?: string | null;
     socialAccounts: SocialAccount[];
-    signatures?: { id: string; name: string }[];
+    signatures?: { id: string; name: string; content?: string }[];
 }
 
 const props = withDefaults(defineProps<Props>(), {

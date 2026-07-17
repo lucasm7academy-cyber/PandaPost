@@ -1,5 +1,10 @@
 <script setup lang="ts">
-import { IconAlertCircle, IconCircleCheck, IconExternalLink, IconLoader2 } from '@tabler/icons-vue';
+import {
+    IconAlertCircle,
+    IconCircleCheck,
+    IconExternalLink,
+    IconLoader2,
+} from '@tabler/icons-vue';
 import { computed } from 'vue';
 
 import LabelBadge from '@/components/labels/LabelBadge.vue';
@@ -10,9 +15,17 @@ import PinterestSettings from '@/components/posts/editor/PinterestSettings.vue';
 import TikTokSettings from '@/components/posts/editor/TikTokSettings.vue';
 import { Avatar } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { usePageErrors } from '@/composables/usePageErrors';
-import { getPlatformLabel, getPlatformLogo } from '@/composables/usePlatformLogo';
+import {
+    getPlatformLabel,
+    getPlatformLogo,
+} from '@/composables/usePlatformLogo';
 import { Platform } from '@/enums/platform';
 import type { PinterestBoard } from '@/types';
 import { PostPlatformStatus } from '@/types/post';
@@ -102,47 +115,65 @@ const emit = defineEmits<{
 
 const selectedTikTokPlatforms = computed(() =>
     props.postPlatforms.filter(
-        (pp) => pp.platform === Platform.TikTok && props.selectedPlatformIds.includes(pp.id),
+        (pp) =>
+            pp.platform === Platform.TikTok &&
+            props.selectedPlatformIds.includes(pp.id),
     ),
 );
 
 const selectedInstagramPlatforms = computed(() =>
     props.postPlatforms.filter(
-        (pp) => (pp.platform === Platform.Instagram || pp.platform === Platform.InstagramFacebook)
-            && props.selectedPlatformIds.includes(pp.id),
+        (pp) =>
+            (pp.platform === Platform.Instagram ||
+                pp.platform === Platform.InstagramFacebook) &&
+            props.selectedPlatformIds.includes(pp.id),
     ),
 );
 
 const selectedFacebookPlatforms = computed(() =>
     props.postPlatforms.filter(
-        (pp) => pp.platform === Platform.Facebook && props.selectedPlatformIds.includes(pp.id),
+        (pp) =>
+            pp.platform === Platform.Facebook &&
+            props.selectedPlatformIds.includes(pp.id),
     ),
 );
 
 const selectedLinkedInPlatforms = computed(() =>
     props.postPlatforms.filter(
-        (pp) => (pp.platform === Platform.LinkedIn || pp.platform === Platform.LinkedInPage)
-            && props.selectedPlatformIds.includes(pp.id),
+        (pp) =>
+            (pp.platform === Platform.LinkedIn ||
+                pp.platform === Platform.LinkedInPage) &&
+            props.selectedPlatformIds.includes(pp.id),
     ),
 );
 
 const selectedPinterestPlatforms = computed(() =>
     props.postPlatforms.filter(
-        (pp) => pp.platform === Platform.Pinterest && props.selectedPlatformIds.includes(pp.id),
+        (pp) =>
+            pp.platform === Platform.Pinterest &&
+            props.selectedPlatformIds.includes(pp.id),
     ),
 );
 
 const getPublishConfig = (pp: PostPlatform): Record<string, any> | null =>
-    pp.social_account_id ? props.platformConfigs[pp.social_account_id]?.publishConfig ?? null : null;
+    pp.social_account_id
+        ? (props.platformConfigs[pp.social_account_id]?.publishConfig ?? null)
+        : null;
 
 const getCreatorInfo = (pp: PostPlatform): TikTokCreatorInfo | null =>
-    pp.social_account_id ? props.tiktokCreatorInfos?.[pp.social_account_id] ?? null : null;
+    pp.social_account_id
+        ? (props.tiktokCreatorInfos?.[pp.social_account_id] ?? null)
+        : null;
 
 const getBoards = (pp: PostPlatform): PinterestBoard[] =>
-    pp.social_account_id ? props.pinterestBoards?.[pp.social_account_id] ?? [] : [];
+    pp.social_account_id
+        ? (props.pinterestBoards?.[pp.social_account_id] ?? [])
+        : [];
 
 const videoDurationSec = computed(() => {
-    const video = props.media?.find((m) => m.type === 'video' || m.mime_type?.startsWith('video/'));
+    const video = props.media?.find(
+        (m) => m.type === 'video' || m.mime_type?.startsWith('video/'),
+    );
     const duration = video?.meta?.duration;
     return typeof duration === 'number' ? Math.ceil(duration) : null;
 });
@@ -161,7 +192,9 @@ const submitIndexByPpId = computed<Record<string, number>>(() => {
     const map: Record<string, number> = {};
     props.postPlatforms
         .filter((pp) => props.selectedPlatformIds.includes(pp.id))
-        .forEach((pp, index) => { map[pp.id] = index; });
+        .forEach((pp, index) => {
+            map[pp.id] = index;
+        });
     return map;
 });
 
@@ -170,28 +203,44 @@ const contentTypeErrorFor = (pp: PostPlatform): string | undefined => {
     if (index === undefined) return undefined;
     return errors.value[`platforms.${index}.content_type`];
 };
-
 </script>
 
 <template>
     <div class="space-y-6">
         <div>
-            <p class="mb-3 text-[11px] font-black uppercase tracking-widest text-foreground/60">
+            <p
+                class="mb-3 text-[11px] font-black tracking-widest text-foreground/60 uppercase"
+            >
                 {{ $t('posts.edit.publish_to') }}
             </p>
             <div class="flex flex-wrap gap-3">
-                <TooltipProvider v-for="pp in postPlatforms" :key="pp.id" :delay-duration="200">
+                <TooltipProvider
+                    v-for="pp in postPlatforms"
+                    :key="pp.id"
+                    :delay-duration="200"
+                >
                     <Tooltip>
                         <TooltipTrigger as-child>
                             <button
                                 type="button"
                                 class="flex w-20 cursor-pointer flex-col items-center gap-1.5 transition-opacity"
                                 :class="[
-                                    platformIssues?.[pp.id] && !selectedPlatformIds.includes(pp.id) ? 'cursor-not-allowed opacity-40' : '',
-                                    platformIssues?.[pp.id] && selectedPlatformIds.includes(pp.id) ? 'opacity-100' : '',
-                                    !platformIssues?.[pp.id] ? 'opacity-100 hover:opacity-90' : '',
+                                    platformIssues?.[pp.id] &&
+                                    !selectedPlatformIds.includes(pp.id)
+                                        ? 'cursor-not-allowed opacity-40'
+                                        : '',
+                                    platformIssues?.[pp.id] &&
+                                    selectedPlatformIds.includes(pp.id)
+                                        ? 'opacity-100'
+                                        : '',
+                                    !platformIssues?.[pp.id]
+                                        ? 'opacity-100 hover:opacity-90'
+                                        : '',
                                 ]"
-                                :disabled="Boolean(platformIssues?.[pp.id]) && !selectedPlatformIds.includes(pp.id)"
+                                :disabled="
+                                    Boolean(platformIssues?.[pp.id]) &&
+                                    !selectedPlatformIds.includes(pp.id)
+                                "
                                 @click="emit('togglePlatform', pp.id)"
                             >
                                 <div class="relative">
@@ -200,12 +249,22 @@ const contentTypeErrorFor = (pp: PostPlatform): string | undefined => {
                                         :name="getPlatformDisplayName(pp)"
                                         class="size-10 shrink-0 rounded-full border-2"
                                         :class="[
-                                            platformIssues?.[pp.id] && selectedPlatformIds.includes(pp.id) ? 'border-rose-500 shadow-2xs' : '',
-                                            !platformIssues?.[pp.id] && selectedPlatformIds.includes(pp.id) ? 'border-foreground shadow-2xs' : '',
-                                            !selectedPlatformIds.includes(pp.id) ? 'border-foreground/20' : '',
+                                            platformIssues?.[pp.id] &&
+                                            selectedPlatformIds.includes(pp.id)
+                                                ? 'border-rose-500 shadow-2xs'
+                                                : '',
+                                            !platformIssues?.[pp.id] &&
+                                            selectedPlatformIds.includes(pp.id)
+                                                ? 'border-foreground shadow-2xs'
+                                                : '',
+                                            !selectedPlatformIds.includes(pp.id)
+                                                ? 'border-foreground/20'
+                                                : '',
                                         ]"
                                     />
-                                    <span class="absolute -bottom-1 -right-1 inline-flex size-5 items-center justify-center overflow-hidden rounded-full border-2 border-foreground bg-card shadow-2xs">
+                                    <span
+                                        class="absolute -right-1 -bottom-1 inline-flex size-5 items-center justify-center overflow-hidden rounded-full border-2 border-foreground bg-card shadow-2xs"
+                                    >
                                         <img
                                             :src="getPlatformLogo(pp.platform)"
                                             :alt="pp.platform"
@@ -213,20 +272,42 @@ const contentTypeErrorFor = (pp: PostPlatform): string | undefined => {
                                         />
                                     </span>
                                     <Badge
-                                        v-if="platformIssues?.[pp.id] && selectedPlatformIds.includes(pp.id)"
+                                        v-if="
+                                            platformIssues?.[pp.id] &&
+                                            selectedPlatformIds.includes(pp.id)
+                                        "
                                         variant="destructive"
                                         class="absolute -top-1 -right-1 h-4 w-4 p-0"
                                     >
                                         <IconAlertCircle class="h-2.5 w-2.5" />
                                     </Badge>
-                                    <Badge v-else-if="pp.status === PostPlatformStatus.Published" variant="success" class="absolute -top-1 -right-1 h-4 w-4 p-0">
+                                    <Badge
+                                        v-else-if="
+                                            pp.status ===
+                                            PostPlatformStatus.Published
+                                        "
+                                        variant="success"
+                                        class="absolute -top-1 -right-1 h-4 w-4 p-0"
+                                    >
                                         <IconCircleCheck class="h-2.5 w-2.5" />
                                     </Badge>
-                                    <Badge v-else-if="pp.status === PostPlatformStatus.Failed" variant="destructive" class="absolute -top-1 -right-1 h-4 w-4 p-0 text-[9px]">!</Badge>
+                                    <Badge
+                                        v-else-if="
+                                            pp.status ===
+                                            PostPlatformStatus.Failed
+                                        "
+                                        variant="destructive"
+                                        class="absolute -top-1 -right-1 h-4 w-4 p-0 text-[9px]"
+                                        >!</Badge
+                                    >
                                 </div>
                                 <span
                                     class="line-clamp-2 text-center text-xs leading-tight"
-                                    :class="selectedPlatformIds.includes(pp.id) ? 'font-bold text-foreground' : 'font-medium text-foreground/70'"
+                                    :class="
+                                        selectedPlatformIds.includes(pp.id)
+                                            ? 'font-bold text-foreground'
+                                            : 'font-medium text-foreground/70'
+                                    "
                                 >
                                     {{ getPlatformDisplayName(pp) }}
                                 </span>
@@ -234,9 +315,23 @@ const contentTypeErrorFor = (pp: PostPlatform): string | undefined => {
                         </TooltipTrigger>
                         <TooltipContent>
                             <div class="space-y-0.5 text-xs">
-                                <p class="font-semibold">{{ getPlatformDisplayName(pp) }}<span v-if="pp.social_account?.username" class="font-normal opacity-80">&nbsp;·&nbsp;@{{ pp.social_account.username }}</span></p>
-                                <p class="opacity-70">{{ getPlatformLabel(pp.platform) }}</p>
-                                <p v-if="platformIssues?.[pp.id]" class="mt-1 max-w-xs text-destructive-foreground/90">
+                                <p class="font-semibold">
+                                    {{ getPlatformDisplayName(pp)
+                                    }}<span
+                                        v-if="pp.social_account?.username"
+                                        class="font-normal opacity-80"
+                                        >&nbsp;·&nbsp;@{{
+                                            pp.social_account.username
+                                        }}</span
+                                    >
+                                </p>
+                                <p class="opacity-70">
+                                    {{ getPlatformLabel(pp.platform) }}
+                                </p>
+                                <p
+                                    v-if="platformIssues?.[pp.id]"
+                                    class="mt-1 max-w-xs text-destructive-foreground/90"
+                                >
                                     {{ platformIssues[pp.id] }}
                                 </p>
                             </div>
@@ -246,29 +341,58 @@ const contentTypeErrorFor = (pp: PostPlatform): string | undefined => {
             </div>
         </div>
 
-        <div v-if="postPlatforms.some(pp => pp.status !== PostPlatformStatus.Pending)">
-            <p class="mb-2 text-[11px] font-black uppercase tracking-widest text-foreground/60">
+        <div
+            v-if="
+                postPlatforms.some(
+                    (pp) => pp.status !== PostPlatformStatus.Pending,
+                )
+            "
+        >
+            <p
+                class="mb-2 text-[11px] font-black tracking-widest text-foreground/60 uppercase"
+            >
                 {{ $t('posts.edit.platform_status') }}
             </p>
             <div class="space-y-2">
                 <div
-                    v-for="pp in postPlatforms.filter(p => p.enabled)"
+                    v-for="pp in postPlatforms.filter((p) => p.enabled)"
                     :key="pp.id"
                     class="flex items-center justify-between rounded-xl border-2 border-foreground bg-card p-3 shadow-2xs"
                 >
                     <div class="flex items-center gap-2">
-                        <span class="inline-flex size-5 items-center justify-center overflow-hidden rounded-full border-2 border-foreground bg-card">
-                            <img :src="getPlatformLogo(pp.platform)" :alt="pp.platform" class="size-full object-cover" />
+                        <span
+                            class="inline-flex size-5 items-center justify-center overflow-hidden rounded-full border-2 border-foreground bg-card"
+                        >
+                            <img
+                                :src="getPlatformLogo(pp.platform)"
+                                :alt="pp.platform"
+                                class="size-full object-cover"
+                            />
                         </span>
-                        <span class="text-sm font-bold text-foreground">{{ getPlatformDisplayName(pp) }}</span>
+                        <span class="text-sm font-bold text-foreground">{{
+                            getPlatformDisplayName(pp)
+                        }}</span>
                     </div>
                     <div class="flex items-center gap-2">
-                        <Badge v-if="pp.status === PostPlatformStatus.Published" variant="success">{{ $t('posts.edit.status.published') }}</Badge>
-                        <Badge v-else-if="pp.status === PostPlatformStatus.Publishing" variant="warning">
+                        <Badge
+                            v-if="pp.status === PostPlatformStatus.Published"
+                            variant="success"
+                            >{{ $t('posts.edit.status.published') }}</Badge
+                        >
+                        <Badge
+                            v-else-if="
+                                pp.status === PostPlatformStatus.Publishing
+                            "
+                            variant="warning"
+                        >
                             <IconLoader2 class="size-3 animate-spin" />
                             {{ $t('posts.edit.status.publishing') }}
                         </Badge>
-                        <Badge v-else-if="pp.status === PostPlatformStatus.Failed" variant="destructive">{{ $t('posts.edit.status.failed') }}</Badge>
+                        <Badge
+                            v-else-if="pp.status === PostPlatformStatus.Failed"
+                            variant="destructive"
+                            >{{ $t('posts.edit.status.failed') }}</Badge
+                        >
                         <a
                             v-if="pp.platform_url"
                             :href="pp.platform_url"
@@ -276,7 +400,10 @@ const contentTypeErrorFor = (pp: PostPlatform): string | undefined => {
                             rel="noopener noreferrer"
                             class="inline-flex size-7 items-center justify-center rounded-full border-2 border-foreground bg-card text-foreground shadow-2xs transition-transform hover:rotate-3 hover:bg-violet-100"
                         >
-                            <IconExternalLink class="size-3.5" stroke-width="2.5" />
+                            <IconExternalLink
+                                class="size-3.5"
+                                stroke-width="2.5"
+                            />
                         </a>
                     </div>
                 </div>
@@ -296,7 +423,9 @@ const contentTypeErrorFor = (pp: PostPlatform): string | undefined => {
                 :content-type-error="contentTypeErrorFor(pp)"
                 :meta="platformMeta[pp.id] ?? {}"
                 :disabled="isReadOnly"
-                @update:content-type="emit('update:platformContentType', pp.id, $event)"
+                @update:content-type="
+                    emit('update:platformContentType', pp.id, $event)
+                "
                 @update:meta="emit('update:platformMeta', pp.id, $event)"
             />
         </div>
@@ -310,7 +439,9 @@ const contentTypeErrorFor = (pp: PostPlatform): string | undefined => {
                 :media="media ?? []"
                 :meta="platformMeta[pp.id] ?? {}"
                 :disabled="isReadOnly"
-                @update:content-type="emit('update:platformContentType', pp.id, $event)"
+                @update:content-type="
+                    emit('update:platformContentType', pp.id, $event)
+                "
                 @update:meta="emit('update:platformMeta', pp.id, $event)"
             />
         </div>
@@ -323,7 +454,9 @@ const contentTypeErrorFor = (pp: PostPlatform): string | undefined => {
                 :content-type="platformContentTypes[pp.id] ?? ''"
                 :media="media ?? []"
                 :disabled="isReadOnly"
-                @update:content-type="emit('update:platformContentType', pp.id, $event)"
+                @update:content-type="
+                    emit('update:platformContentType', pp.id, $event)
+                "
             />
         </div>
 
@@ -336,7 +469,9 @@ const contentTypeErrorFor = (pp: PostPlatform): string | undefined => {
                 :content-type="platformContentTypes[pp.id] ?? ''"
                 :media="media ?? []"
                 :disabled="isReadOnly"
-                @update:content-type="emit('update:platformContentType', pp.id, $event)"
+                @update:content-type="
+                    emit('update:platformContentType', pp.id, $event)
+                "
             />
         </div>
 
@@ -350,13 +485,17 @@ const contentTypeErrorFor = (pp: PostPlatform): string | undefined => {
                 :boards="getBoards(pp)"
                 :meta="platformMeta[pp.id] ?? {}"
                 :disabled="isReadOnly"
-                @update:content-type="emit('update:platformContentType', pp.id, $event)"
+                @update:content-type="
+                    emit('update:platformContentType', pp.id, $event)
+                "
                 @update:meta="emit('update:platformMeta', pp.id, $event)"
             />
         </div>
 
         <div>
-            <p class="mb-3 text-[11px] font-black uppercase tracking-widest text-foreground/60">
+            <p
+                class="mb-3 text-[11px] font-black tracking-widest text-foreground/60 uppercase"
+            >
                 {{ $t('posts.edit.labels') }}
             </p>
             <div v-if="labels.length > 0" class="flex flex-wrap gap-2">
@@ -370,7 +509,9 @@ const contentTypeErrorFor = (pp: PostPlatform): string | undefined => {
                     @click="emit('toggleLabel', label.id)"
                 />
             </div>
-            <p v-else class="text-sm font-medium text-foreground/60">{{ $t('posts.edit.no_labels') }}</p>
+            <p v-else class="text-sm font-medium text-foreground/60">
+                {{ $t('posts.edit.no_labels') }}
+            </p>
         </div>
     </div>
 </template>

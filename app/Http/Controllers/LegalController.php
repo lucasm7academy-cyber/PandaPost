@@ -14,6 +14,7 @@ class LegalController extends Controller
         return Inertia::render('legal/Terms', [
             'lastUpdated' => '2026-05-29',
             'contactEmail' => config('mail.from.address'),
+            'sections' => __('legal.terms.sections'),
         ]);
     }
 
@@ -22,6 +23,7 @@ class LegalController extends Controller
         return Inertia::render('legal/Privacy', [
             'lastUpdated' => '2026-05-29',
             'contactEmail' => config('mail.from.address'),
+            'sections' => __('legal.privacy.sections'),
         ]);
     }
 }

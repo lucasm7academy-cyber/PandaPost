@@ -60,6 +60,8 @@ const submit = () => {
             :available-image-styles="availableImageStyles"
         />
 
-        <Button :disabled="form.processing">{{ $t('settings.workspace.save') }}</Button>
+        <Button :disabled="form.processing">{{
+            $t('settings.workspace.save')
+        }}</Button>
     </form>
 </template>

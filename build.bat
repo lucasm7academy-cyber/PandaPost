@@ -5,4 +5,5 @@ REM Add Laragon to PATH for other tools
 set PATH=C:\laragon\bin;%PATH%
 
 REM Run npm build
+set DB_HOST=127.0.0.1
 npm run build

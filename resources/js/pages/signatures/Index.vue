@@ -88,20 +88,20 @@ const hasActiveSearch = computed(() => Boolean(searchQuery.value?.trim()));
     <Head :title="$t('signatures.title')" />
 
     <AppLayout>
-        <div class="flex h-full flex-1 flex-col gap-6 px-6 py-8">
+        <div class="flex h-full flex-1 flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8">
             <PageHeader :title="$t('signatures.title')" />
 
-            <div class="flex items-center justify-between gap-3">
-                <div class="relative">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="relative w-full sm:w-64">
                     <IconSearch class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
                         v-model="searchQuery"
                         :placeholder="trans('signatures.search')"
-                        class="w-64 pl-9"
+                        class="w-full pl-9"
                     />
                 </div>
 
-                <Button @click="isCreateDialogOpen = true">{{ $t('signatures.new') }}</Button>
+                <Button class="w-full sm:w-auto" @click="isCreateDialogOpen = true">{{ $t('signatures.new') }}</Button>
             </div>
 
             <EmptyState
@@ -118,7 +118,7 @@ const hasActiveSearch = computed(() => Boolean(searchQuery.value?.trim()));
                             <TableRow>
                                 <TableHead>{{ $t('signatures.table.name') }}</TableHead>
                                 <TableHead>{{ $t('signatures.table.content') }}</TableHead>
-                                <TableHead>{{ $t('signatures.table.created_at') }}</TableHead>
+                                <TableHead class="hidden sm:table-cell">{{ $t('signatures.table.created_at') }}</TableHead>
                                 <TableHead class="text-right" />
                             </TableRow>
                         </TableHeader>
@@ -133,7 +133,7 @@ const hasActiveSearch = computed(() => Boolean(searchQuery.value?.trim()));
                                 <TableCell class="max-w-md">
                                     <p class="truncate">{{ signature.content }}</p>
                                 </TableCell>
-                                <TableCell>{{ formatDate(signature.created_at) }}</TableCell>
+                                <TableCell class="hidden sm:table-cell">{{ formatDate(signature.created_at) }}</TableCell>
                                 <TableCell class="text-right" @click.stop>
                                     <div class="flex justify-end gap-2">
                                         <Button

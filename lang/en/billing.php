@@ -39,10 +39,10 @@ return [
         'popular' => 'Most popular',
         'subscribe_cta' => 'Subscribe',
         'prices' => [
-            'starter' => ['monthly' => '$19', 'yearly_per_month' => '$16', 'yearly' => '$190'],
-            'plus' => ['monthly' => '$29', 'yearly_per_month' => '$24', 'yearly' => '$290'],
-            'pro' => ['monthly' => '$49', 'yearly_per_month' => '$41', 'yearly' => '$490'],
-            'max' => ['monthly' => '$99', 'yearly_per_month' => '$83', 'yearly' => '$990'],
+            'starter' => ['monthly' => '$7.90', 'yearly_per_month' => '$6.50', 'yearly' => '$79'],
+            'plus' => ['monthly' => '$11.90', 'yearly_per_month' => '$9.90', 'yearly' => '$119'],
+            'pro' => ['monthly' => '$19.90', 'yearly_per_month' => '$16.50', 'yearly' => '$199'],
+            'max' => ['monthly' => '$39.90', 'yearly_per_month' => '$33.25', 'yearly' => '$399'],
         ],
         'features' => [
             'social_accounts' => ':count social accounts',

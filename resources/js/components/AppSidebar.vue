@@ -7,6 +7,7 @@ import {
     IconChartBar,
     IconChevronRight,
     IconClock,
+    IconCreditCard,
     IconFileCheck,
     IconFileText,
     IconHash,
@@ -274,6 +275,19 @@ const handleCreateWorkspace = () => {
                         <Link href="/admin">
                             <IconShield />
                             <span>{{ $t('sidebar.admin') }}</span>
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+
+                <SidebarMenuItem>
+                    <SidebarMenuButton
+                        as-child
+                        :tooltip="trans('sidebar.plans')"
+                        :is-active="urlIsActive('/subscribe')"
+                    >
+                        <Link href="/subscribe">
+                            <IconCreditCard />
+                            <span>{{ $t('sidebar.plans') }}</span>
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>

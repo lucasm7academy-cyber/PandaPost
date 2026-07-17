@@ -14,7 +14,7 @@ return [
     |
     */
 
-    'self_hosted' => env('SELF_HOSTED', true),
+    'self_hosted' => env('SELF_HOSTED', false),
 
     /*
     |--------------------------------------------------------------------------

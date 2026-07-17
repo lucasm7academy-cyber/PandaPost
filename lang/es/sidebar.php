@@ -27,6 +27,7 @@ return [
 
     'analytics' => 'Analytics',
     'settings' => 'Configuración',
+    'plans' => 'Planes',
     'admin' => 'Panel Admin',
 
     'posts' => [

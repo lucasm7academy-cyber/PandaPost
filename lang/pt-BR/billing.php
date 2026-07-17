@@ -39,10 +39,10 @@ return [
         'popular' => 'Mais popular',
         'subscribe_cta' => 'Assinar',
         'prices' => [
-            'starter' => ['monthly' => 'R$ 95', 'yearly_per_month' => 'R$ 79', 'yearly' => 'R$ 950'],
-            'plus' => ['monthly' => 'R$ 145', 'yearly_per_month' => 'R$ 121', 'yearly' => 'R$ 1450'],
-            'pro' => ['monthly' => 'R$ 245', 'yearly_per_month' => 'R$ 204', 'yearly' => 'R$ 2450'],
-            'max' => ['monthly' => 'R$ 495', 'yearly_per_month' => 'R$ 413', 'yearly' => 'R$ 4950'],
+            'starter' => ['monthly' => 'R$ 39,90', 'yearly_per_month' => 'R$ 33,25', 'yearly' => 'R$ 399'],
+            'plus' => ['monthly' => 'R$ 59,90', 'yearly_per_month' => 'R$ 49,91', 'yearly' => 'R$ 599'],
+            'pro' => ['monthly' => 'R$ 99,90', 'yearly_per_month' => 'R$ 83,25', 'yearly' => 'R$ 999'],
+            'max' => ['monthly' => 'R$ 199,90', 'yearly_per_month' => 'R$ 165,75', 'yearly' => 'R$ 1.989'],
         ],
         'features' => [
             'social_accounts' => ':count contas sociais',

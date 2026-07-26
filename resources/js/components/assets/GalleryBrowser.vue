@@ -23,6 +23,7 @@ import { toast } from 'vue-sonner';
 import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue';
 import EmptyState from '@/components/EmptyState.vue';
 import ImagePreviewDialog from '@/components/ImagePreviewDialog.vue';
+import PurgedMediaPlaceholder from '@/components/PurgedMediaPlaceholder.vue';
 import GoogleDriveBrowser from '@/components/assets/GoogleDriveBrowser.vue';
 import GoogleDrivePicker from '@/components/assets/GoogleDrivePicker.vue';
 import { Button } from '@/components/ui/button';
@@ -61,7 +62,13 @@ interface AssetMedia {
     mime_type: string;
     original_filename: string;
     size: number;
-    meta: { width?: number; height?: number; duration?: number } | null;
+    meta: {
+        width?: number;
+        height?: number;
+        duration?: number;
+        /** Set once the video file was deleted to reclaim disk space. */
+        purged_at?: string;
+    } | null;
     created_at: string;
 }
 
@@ -120,6 +127,11 @@ const isPicker = computed(() => props.mode === 'picker');
 const lightbox = ref<InstanceType<typeof ImagePreviewDialog> | null>(null);
 
 const handleAssetClick = (asset: AssetMedia) => {
+    // The file is gone, so it can neither be attached to a new post nor previewed.
+    if (asset.meta?.purged_at) {
+        return;
+    }
+
     if (isPicker.value) {
         toggleSelect(asset);
         return;
@@ -821,8 +833,12 @@ onUnmounted(() => {
                         @click="handleAssetClick(asset)"
                     >
                         <div class="aspect-square">
+                            <PurgedMediaPlaceholder
+                                v-if="asset.meta?.purged_at"
+                                :filename="asset.original_filename"
+                            />
                             <video
-                                v-if="asset.type === 'video'"
+                                v-else-if="asset.type === 'video'"
                                 :src="asset.url"
                                 class="size-full object-cover"
                                 muted

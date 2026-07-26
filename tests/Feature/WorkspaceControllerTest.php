@@ -241,6 +241,37 @@ test('update workspace settings rejects unknown image_style values', function ()
         ])->assertSessionHasErrors(['image_style']);
 });
 
+test('update workspace settings accepts the name-only payload sent by the workspace tab', function () {
+    // The Workspace settings tab renders a single `name` input and submits
+    // nothing else. Marking brand_font/image_style as `required` made this
+    // payload fail validation on fields that tab never renders, so the save
+    // silently did nothing.
+    $response = $this->actingAs($this->user)
+        ->from(route('app.workspace.settings'))
+        ->put(route('app.workspace.settings.update'), [
+            'name' => 'Nome Novo',
+        ]);
+
+    $response->assertSessionHasNoErrors();
+    $response->assertRedirect(route('app.workspace.settings'));
+
+    expect($this->workspace->refresh()->name)->toBe('Nome Novo');
+});
+
+test('update workspace settings leaves brand fields untouched on a name-only save', function () {
+    $this->workspace->update(['brand_font' => 'Inter', 'image_style' => 'minimalist']);
+
+    $this->actingAs($this->user)
+        ->from(route('app.workspace.settings'))
+        ->put(route('app.workspace.settings.update'), ['name' => 'Outro Nome'])
+        ->assertSessionHasNoErrors();
+
+    $this->workspace->refresh();
+    expect($this->workspace->name)->toBe('Outro Nome');
+    expect($this->workspace->brand_font)->toBe('Inter');
+    expect($this->workspace->image_style->value)->toBe('minimalist');
+});
+
 test('update workspace settings validates required fields', function () {
     $response = $this->actingAs($this->user)->put(route('app.workspace.settings.update'), [
         'name' => '',

@@ -16,6 +16,11 @@ return [
         'uploading' => 'Uploading...',
         'remove' => 'Remove photo',
         'hint' => 'Recommended: square image, max 2 MB.',
+        'failed' => 'Upload failed. Please try again.',
+    ],
+
+    'purged_media' => [
+        'label' => 'Video published and deleted',
     ],
 
     'timezone' => [

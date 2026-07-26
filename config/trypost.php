@@ -32,6 +32,26 @@ return [
             'image' => (int) env('MEDIA_IMAGE_MAX_SIZE_MB', 10),
             'video' => (int) env('MEDIA_VIDEO_MAX_SIZE_MB', 1024),
         ],
+
+        /*
+         * Reclaims disk space by deleting video files once every post using
+         * them has been published. The `medias` row and the post's media entry
+         * are kept (flagged as purged) so the library and the post history
+         * still show which file was used — only the bytes on disk go away.
+         *
+         * A video referenced by any post that is not yet published is never
+         * touched, no matter how old it is.
+         */
+        'purge' => [
+            'enabled' => (bool) env('MEDIA_PURGE_ENABLED', true),
+
+            // Grace period after a post is published before its video is purged.
+            'published_after_days' => (int) env('MEDIA_PURGE_PUBLISHED_AFTER_DAYS', 2),
+
+            // Videos in the asset library never attached to any post. Longer by
+            // default: this is material uploaded but not scheduled yet.
+            'orphan_after_days' => (int) env('MEDIA_PURGE_ORPHAN_AFTER_DAYS', 30),
+        ],
     ],
 
     /*

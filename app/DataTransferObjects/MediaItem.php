@@ -19,6 +19,7 @@ class MediaItem
         public readonly ?string $original_filename = null,
         public readonly ?Source $source = null,
         public readonly ?array $source_meta = null,
+        public readonly ?array $meta = null,
     ) {}
 
     public function isVideo(): bool
@@ -71,6 +72,7 @@ class MediaItem
         $source = is_string($sourceValue) ? Source::tryFrom($sourceValue) : null;
 
         $sourceMeta = data_get($data, 'source_meta');
+        $meta = data_get($data, 'meta');
 
         return new self(
             id: data_get($data, 'id', ''),
@@ -80,6 +82,7 @@ class MediaItem
             original_filename: data_get($data, 'original_filename'),
             source: $source,
             source_meta: is_array($sourceMeta) ? $sourceMeta : null,
+            meta: is_array($meta) ? $meta : null,
         );
     }
 }

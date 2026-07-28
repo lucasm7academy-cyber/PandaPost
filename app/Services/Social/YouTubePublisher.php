@@ -182,6 +182,11 @@ class YouTubePublisher
 
             $videoId = $uploadStatus->getId();
 
+            $coverPath = data_get($media->meta, 'cover_path');
+            if ($coverPath) {
+                $this->setCustomThumbnail($youtube, $videoId, $coverPath);
+            }
+
             return [
                 'id' => $videoId,
                 'url' => "https://www.youtube.com/shorts/{$videoId}",
@@ -201,6 +206,34 @@ class YouTubePublisher
             }
 
             @unlink($tempFile);
+        }
+    }
+
+    private function setCustomThumbnail(YouTube $youtube, string $videoId, string $coverPath): void
+    {
+        if (! Storage::exists($coverPath)) {
+            return;
+        }
+
+        try {
+            $fullPath = Storage::path($coverPath);
+            $mimeType = mime_content_type($fullPath) ?: 'image/jpeg';
+
+            $youtube->thumbnails->set($videoId, [
+                'data' => file_get_contents($fullPath),
+                'mimeType' => $mimeType,
+                'uploadType' => 'media',
+            ]);
+        } catch (Exception $e) {
+            Log::warning('Failed to set YouTube video thumbnail (channel may be unverified)', [
+                'video_id' => $videoId,
+                'error' => $e->getMessage(),
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Unexpected error setting YouTube thumbnail', [
+                'video_id' => $videoId,
+                'error' => $e->getMessage(),
+            ]);
         }
     }
 

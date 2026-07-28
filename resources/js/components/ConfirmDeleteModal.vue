@@ -54,6 +54,7 @@ const emit = defineEmits(['deleted', 'closed']);
 const isOpen = ref(false);
 const processing = ref(false);
 const url = ref<string | null>(null);
+const payload = ref<Record<string, unknown>>({});
 const confirmInput = ref('');
 const confirmText = ref('');
 
@@ -83,14 +84,20 @@ const remove = () => {
     const method = props.method as 'delete' | 'get' | 'post' | 'put' | 'patch';
 
     if (method === 'delete' || method === 'get') {
-        router[method](url.value, options as any);
+        // DELETE/GET take no body argument — the payload rides in the options.
+        router[method](url.value, { ...options, data: payload.value } as any);
     } else {
-        router[method](url.value, {}, options as any);
+        router[method](url.value, payload.value as any, options as any);
     }
 };
 
-const open = (data: { url: string; confirmText?: string }) => {
+const open = (data: {
+    url: string;
+    confirmText?: string;
+    data?: Record<string, unknown>;
+}) => {
     url.value = data.url;
+    payload.value = data.data ?? {};
     confirmText.value = data.confirmText ?? '';
     processing.value = false;
     confirmInput.value = '';

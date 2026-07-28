@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\App;
 
+use App\Enums\Media\Source;
+use App\Http\Requests\App\Asset\BulkDestroyAssetRequest;
 use App\Http\Requests\App\Asset\StoreAssetFromUrlRequest;
 use App\Http\Requests\App\Asset\StoreAssetRequest;
 use App\Http\Requests\App\Asset\StoreChunkedAssetRequest;
 use App\Http\Resources\App\MediaResource;
 use App\Models\Media;
-use App\Enums\Media\Source;
 use App\Services\GoogleDrive\GoogleDriveService;
 use App\Services\UnsplashService;
 use Illuminate\Http\JsonResponse;
@@ -279,6 +280,33 @@ class AssetController extends Controller
         }
 
         $media->delete();
+
+        return back();
+    }
+
+    /**
+     * Delete several assets at once.
+     *
+     * Ownership is enforced by the query rather than per row, so ids belonging
+     * to another workspace are silently skipped instead of failing the whole
+     * batch.
+     */
+    public function bulkDestroy(BulkDestroyAssetRequest $request): RedirectResponse
+    {
+        $workspace = $request->user()->currentWorkspace;
+
+        $this->authorize('createPost', $workspace);
+
+        $medias = Media::query()
+            ->whereIn('id', $request->validated('ids'))
+            ->where('mediable_type', $workspace->getMorphClass())
+            ->where('mediable_id', $workspace->id)
+            ->where('collection', 'assets')
+            ->get();
+
+        // Deleted one by one on purpose: Media::delete() also unlinks the file
+        // and guards against other rows still pointing at the same path.
+        $medias->each(fn (Media $media) => $media->delete());
 
         return back();
     }

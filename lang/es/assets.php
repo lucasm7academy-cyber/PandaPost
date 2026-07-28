@@ -34,6 +34,23 @@ return [
         'cancel' => 'Cancelar',
     ],
 
+    'selection' => [
+        'enter' => 'Seleccionar',
+        'exit' => 'Listo',
+        'select_all' => 'Seleccionar todo',
+        'clear' => 'Limpiar',
+        'count' => ':count seleccionado(s)',
+        'delete' => 'Eliminar seleccionados',
+        'deleted' => ':count medio(s) eliminado(s)',
+    ],
+
+    'bulk_delete' => [
+        'title' => 'Eliminar :count medio(s)',
+        'description' => 'Los archivos seleccionados se eliminarán permanentemente de tu biblioteca y del disco del servidor.',
+        'confirm' => 'Eliminar todo',
+        'cancel' => 'Cancelar',
+    ],
+
     'unsplash' => [
         'search_placeholder' => 'Buscar fotos gratuitas...',
         'no_results' => 'No se encontraron fotos',

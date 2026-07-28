@@ -13,4 +13,4 @@ Schedule::command(ProcessScheduledPosts::class)->everyMinute()->withoutOverlappi
 Schedule::command(CheckSocialConnections::class)->daily()->withoutOverlapping()->onOneServer();
 Schedule::command(RefreshExpiringTokens::class)->hourly()->withoutOverlapping()->onOneServer();
 Schedule::command(RecoverStuckPosts::class)->everyThirtyMinutes()->withoutOverlapping()->onOneServer();
-Schedule::command(PurgePublishedVideos::class)->dailyAt('04:00')->withoutOverlapping()->onOneServer();
+Schedule::command(PurgePublishedVideos::class)->hourly()->withoutOverlapping()->onOneServer();

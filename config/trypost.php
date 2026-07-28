@@ -46,7 +46,9 @@ return [
             'enabled' => (bool) env('MEDIA_PURGE_ENABLED', true),
 
             // Grace period after a post is published before its video is purged.
-            'published_after_days' => (int) env('MEDIA_PURGE_PUBLISHED_AFTER_DAYS', 2),
+            // One day = the 24h window the app promises; the command runs hourly
+            // so the cutoff is honoured within the hour rather than at midnight.
+            'published_after_days' => (int) env('MEDIA_PURGE_PUBLISHED_AFTER_DAYS', 1),
 
             // Videos in the asset library never attached to any post. Longer by
             // default: this is material uploaded but not scheduled yet.

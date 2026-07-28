@@ -114,13 +114,20 @@ class InstagramPublisher
 
     private function publishReel(string $instagramId, string $accessToken, ?string $content, $media): array
     {
-        // Step 1: Create container for video/reel
-        $containerResponse = $this->socialHttp()->post("{$this->baseUrl}/{$instagramId}/media", [
+        $params = [
             'video_url' => $media->url,
             'caption' => $content,
             'media_type' => 'REELS',
             'access_token' => $accessToken,
-        ]);
+        ];
+
+        $coverUrl = data_get($media->meta, 'cover_url');
+        if ($coverUrl) {
+            $params['cover_url'] = $coverUrl;
+        }
+
+        // Step 1: Create container for video/reel
+        $containerResponse = $this->socialHttp()->post("{$this->baseUrl}/{$instagramId}/media", $params);
 
         if ($containerResponse->failed()) {
             Log::error('Instagram reel container creation failed', [

@@ -11,6 +11,7 @@ use App\Models\SocialAccount;
 use App\Models\User;
 use App\Models\Workspace;
 use App\Services\Social\InstagramPublisher;
+use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Drivers\Gd\Driver;
@@ -888,4 +889,46 @@ test('carousel applies aspect ratio crop to every image', function () {
         expect($image->width())->toBe($image->height());
         @unlink($tempFile);
     }
+});
+
+test('instagram publisher includes cover_url when publishing reel with custom cover', function () {
+    Storage::fake('public');
+    $videoPath = 'media/test-video.mp4';
+    Storage::disk('public')->put($videoPath, 'fake-video');
+
+    $this->post->update([
+        'content' => 'Reel with cover',
+        'media' => [
+            [
+                'id' => 'm1',
+                'path' => $videoPath,
+                'url' => 'https://example.com/media/test-video.mp4',
+                'mime_type' => 'video/mp4',
+                'type' => 'video',
+                'meta' => [
+                    'cover_url' => 'https://example.com/media/custom-cover.jpg',
+                    'cover_path' => 'media/custom-cover.jpg',
+                ],
+            ],
+        ],
+    ]);
+
+    $this->postPlatform->update([
+        'content_type' => ContentType::InstagramReel->value,
+    ]);
+
+    Http::fake([
+        'https://graph.instagram.com/v25.0/ig_123456789/media' => function (Request $request) {
+            expect($request->data())->toHaveKey('cover_url', 'https://example.com/media/custom-cover.jpg');
+
+            return Http::response(['id' => 'container_reel_123'], 200);
+        },
+        'https://graph.instagram.com/v25.0/container_reel_123*' => Http::response(['status_code' => 'FINISHED'], 200),
+        'https://graph.instagram.com/v25.0/ig_123456789/media_publish' => Http::response(['id' => 'published_reel_123'], 200),
+        'https://graph.instagram.com/v25.0/published_reel_123*' => Http::response(['permalink' => 'https://instagram.com/reel/123'], 200),
+    ]);
+
+    $result = $this->publisher->publish($this->postPlatform);
+
+    expect($result)->toHaveKey('id', 'published_reel_123');
 });

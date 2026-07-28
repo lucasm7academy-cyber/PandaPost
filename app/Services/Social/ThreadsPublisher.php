@@ -123,13 +123,20 @@ class ThreadsPublisher
 
     private function publishVideoPost(string $userId, string $accessToken, ?string $content, $media): array
     {
-        // Step 1: Create container
-        $containerResponse = $this->socialHttp()->post("{$this->baseUrl}/{$userId}/threads", [
+        $params = [
             'media_type' => 'VIDEO',
             'video_url' => $media->url,
             'text' => $content,
             'access_token' => $accessToken,
-        ]);
+        ];
+
+        $coverUrl = data_get($media->meta, 'cover_url');
+        if ($coverUrl) {
+            $params['cover_url'] = $coverUrl;
+        }
+
+        // Step 1: Create container
+        $containerResponse = $this->socialHttp()->post("{$this->baseUrl}/{$userId}/threads", $params);
 
         if ($containerResponse->failed()) {
             Log::error('Threads video container creation failed', [

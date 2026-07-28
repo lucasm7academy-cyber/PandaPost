@@ -5,10 +5,12 @@ import {
     IconHash,
     IconLibraryPhoto,
     IconMoodSmile,
+    IconPhoto,
     IconSparkles,
     IconTrash,
     IconVideo,
     IconWriting,
+    IconX,
 } from '@tabler/icons-vue';
 import { trans } from 'laravel-vue-i18n';
 import { computed, nextTick, ref } from 'vue';
@@ -42,8 +44,82 @@ interface MediaItem {
     mime_type?: string;
     original_filename?: string;
     size?: number;
-    meta?: { width?: number; height?: number; duration?: number };
+    meta?: {
+        width?: number;
+        height?: number;
+        duration?: number;
+        cover_url?: string;
+        cover_path?: string;
+    };
 }
+
+const coverFileInputRef = ref<HTMLInputElement | null>(null);
+const activeCoverVideoId = ref<string | null>(null);
+const isUploadingCover = ref(false);
+
+const triggerCoverUpload = (item: MediaItem) => {
+    activeCoverVideoId.value = item.id;
+    coverFileInputRef.value?.click();
+};
+
+const removeCover = (item: MediaItem) => {
+    const idx = media.value.findIndex((m) => m.id === item.id);
+    if (idx < 0) return;
+    const newMeta = { ...media.value[idx].meta };
+    delete newMeta.cover_url;
+    delete newMeta.cover_path;
+    const updated = { ...media.value[idx], meta: newMeta };
+    media.value.splice(idx, 1, updated);
+};
+
+const onCoverFileSelected = async (event: Event) => {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file || !activeCoverVideoId.value) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    isUploadingCover.value = true;
+
+    try {
+        const response = await fetch('/assets', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+            },
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            const coverUrl = data.data?.url || data.url;
+            const coverPath = data.data?.path || data.path;
+
+            const idx = media.value.findIndex((m) => m.id === activeCoverVideoId.value);
+            if (idx >= 0 && coverUrl) {
+                const updated = {
+                    ...media.value[idx],
+                    meta: {
+                        ...(media.value[idx].meta || {}),
+                        cover_url: coverUrl,
+                        cover_path: coverPath,
+                    },
+                };
+                media.value.splice(idx, 1, updated);
+            }
+        }
+    } catch (e) {
+        console.error('Failed to upload video cover', e);
+    } finally {
+        isUploadingCover.value = false;
+        if (coverFileInputRef.value) {
+            coverFileInputRef.value.value = '';
+        }
+        activeCoverVideoId.value = null;
+    }
+};
 
 interface Signature {
     id: string;
@@ -341,8 +417,32 @@ const issueLabel = (reason: string): string =>
                             </Tooltip>
                         </TooltipProvider>
 
+                        <div
+                            v-if="isVideo(item)"
+                            class="absolute top-1.5 left-1.5 z-10 flex items-center gap-1"
+                        >
+                            <button
+                                type="button"
+                                class="inline-flex cursor-pointer items-center gap-1 rounded-md border-2 border-foreground bg-card px-1.5 py-0.5 text-[10px] font-bold text-foreground shadow-2xs transition-all hover:bg-violet-100"
+                                :title="item.meta?.cover_url ? 'Alterar Capa' : 'Adicionar Capa'"
+                                @click.stop="triggerCoverUpload(item)"
+                            >
+                                <IconPhoto class="size-3" />
+                                <span>{{ item.meta?.cover_url ? 'Capa OK' : 'Capa' }}</span>
+                            </button>
+                            <button
+                                v-if="item.meta?.cover_url"
+                                type="button"
+                                class="inline-flex size-5 cursor-pointer items-center justify-center rounded-md border-2 border-foreground bg-rose-100 text-rose-700 shadow-2xs transition-all hover:bg-rose-200"
+                                title="Remover Capa"
+                                @click.stop="removeCover(item)"
+                            >
+                                <IconX class="size-3" />
+                            </button>
+                        </div>
+
                         <span
-                            v-if="media.length > 1"
+                            v-if="media.length > 1 && !isVideo(item)"
                             class="absolute top-1.5 left-1.5 inline-flex size-6 cursor-grab items-center justify-center rounded-md border-2 border-foreground bg-card text-foreground opacity-0 shadow-2xs transition-opacity group-hover:opacity-100 group-focus:opacity-100"
                         >
                             <IconGripVertical class="size-3.5" />
@@ -516,6 +616,13 @@ const issueLabel = (reason: string): string =>
             ref="signaturesModal"
             :signatures="signatures"
             @select="appendSignature"
+        />
+        <input
+            ref="coverFileInputRef"
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            class="hidden"
+            @change="onCoverFileSelected"
         />
         <MediaPickerDialog
             ref="mediaPickerDialog"

@@ -29,7 +29,7 @@ if (reverbKey) {
     });
 }
 
-const appName = import.meta.env.VITE_APP_NAME || 'PandaPost.com.br';
+const appName = import.meta.env.VITE_APP_NAME || 'PandaPost';
 
 createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),

@@ -309,6 +309,52 @@ test('chunked video upload finalizes without loading the whole file into memory'
     expect($peakGrowth)->toBeLessThan($totalSize);
 });
 
+test('chunked upload stores an accented filename sent as raw latin1 bytes', function () {
+    // Browsers serialize non-ASCII header values as latin1 (the low byte of each
+    // UTF-16 code unit), so `ã` arrives as 0xE3 instead of the UTF-8 0xC3 0xA3.
+    // Postgres rejects those bytes with SQLSTATE 22021 on insert.
+    $content = file_get_contents(__DIR__.'/../fixtures/1x1.png');
+    $size = strlen($content);
+
+    $response = $this->actingAs($this->user)->call(
+        'POST',
+        route('app.assets.store-chunked'),
+        [], [], [],
+        [
+            'HTTP_CONTENT_RANGE' => 'bytes 0-'.($size - 1).'/'.$size,
+            'HTTP_X_FILE_NAME' => mb_convert_encoding('eu não acredito.png', 'ISO-8859-1', 'UTF-8'),
+            'HTTP_ACCEPT' => 'application/json',
+            'CONTENT_TYPE' => 'application/octet-stream',
+        ],
+        $content,
+    );
+
+    $response->assertSuccessful();
+    $response->assertJsonPath('original_filename', 'eu não acredito.png');
+});
+
+test('chunked upload stores an accented filename sent percent-encoded', function () {
+    // The client percent-encodes the name so the header stays pure ASCII.
+    $content = file_get_contents(__DIR__.'/../fixtures/1x1.png');
+    $size = strlen($content);
+
+    $response = $this->actingAs($this->user)->call(
+        'POST',
+        route('app.assets.store-chunked'),
+        [], [], [],
+        [
+            'HTTP_CONTENT_RANGE' => 'bytes 0-'.($size - 1).'/'.$size,
+            'HTTP_X_FILE_NAME' => rawurlencode('eu não acredito.png'),
+            'HTTP_ACCEPT' => 'application/json',
+            'CONTENT_TYPE' => 'application/octet-stream',
+        ],
+        $content,
+    );
+
+    $response->assertSuccessful();
+    $response->assertJsonPath('original_filename', 'eu não acredito.png');
+});
+
 test('chunked upload rejects unsupported file extension', function () {
     $response = $this->actingAs($this->user)->call(
         'POST',

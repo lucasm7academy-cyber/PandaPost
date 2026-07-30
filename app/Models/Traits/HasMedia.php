@@ -76,19 +76,34 @@ trait HasMedia
         $mimeType = $file->getMimeType();
         $type = $this->getMediaType($mimeType);
 
-        // Normalize non-JPEG still images to JPEG q100 for universal platform compatibility.
-        // GIF is preserved (animation kept for X/Bluesky/Mastodon).
-        [$normalizedBytes, $normalizedMime, $normalizedExt] = $this->normalizeImageFormat(
-            $file->getPathname(),
-            $mimeType,
-            $type,
-            $file->getClientOriginalExtension(),
-        );
+        if ($type === 'image') {
+            // Normalize non-JPEG still images to JPEG q100 for universal platform compatibility.
+            // GIF is preserved (animation kept for X/Bluesky/Mastodon).
+            [$normalizedBytes, $storedMime, $storedExtension] = $this->normalizeImageFormat(
+                $file->getPathname(),
+                $mimeType,
+                $type,
+                $file->getClientOriginalExtension(),
+            );
 
-        $filename = Str::uuid().'.'.$normalizedExt;
-        $path = 'medias/'.$filename;
+            $path = 'medias/'.Str::uuid().'.'.$storedExtension;
 
-        Storage::put($path, $normalizedBytes);
+            Storage::put($path, $normalizedBytes);
+
+            $size = strlen($normalizedBytes);
+            $derivedMeta = $this->getMediaMetaFromBytes($normalizedBytes, $type, $meta);
+        } else {
+            // Videos are accepted up to ~1GB, so they are streamed straight to
+            // the disk. Reading one into a string would allocate the whole file
+            // and exhaust memory_limit.
+            $storedMime = $mimeType;
+            $path = 'medias/'.Str::uuid().'.'.$file->getClientOriginalExtension();
+
+            $this->streamFileToStorage($file->getPathname(), $path);
+
+            $size = (int) filesize($file->getPathname());
+            $derivedMeta = [];
+        }
 
         return $this->media()->create([
             'group_id' => $groupId ?? Str::uuid()->toString(),
@@ -96,10 +111,10 @@ trait HasMedia
             'type' => $type,
             'path' => $path,
             'original_filename' => $file->getClientOriginalName(),
-            'mime_type' => $normalizedMime,
-            'size' => strlen($normalizedBytes),
+            'mime_type' => $storedMime,
+            'size' => $size,
             'order' => 0,
-            'meta' => array_merge($this->getMediaMetaFromBytes($normalizedBytes, $type, $meta), $meta),
+            'meta' => array_merge($derivedMeta, $meta),
         ]);
     }
 
@@ -116,17 +131,32 @@ trait HasMedia
         $type = $this->getMediaType($mimeType);
         $extension = pathinfo($originalFilename, PATHINFO_EXTENSION);
 
-        [$normalizedBytes, $normalizedMime, $normalizedExt] = $this->normalizeImageFormat(
-            $filePath,
-            $mimeType,
-            $type,
-            $extension,
-        );
+        if ($type === 'image') {
+            [$normalizedBytes, $storedMime, $storedExtension] = $this->normalizeImageFormat(
+                $filePath,
+                $mimeType,
+                $type,
+                $extension,
+            );
 
-        $filename = Str::uuid().'.'.$normalizedExt;
-        $storagePath = 'medias/'.$filename;
+            $storagePath = 'medias/'.Str::uuid().'.'.$storedExtension;
 
-        Storage::put($storagePath, $normalizedBytes);
+            Storage::put($storagePath, $normalizedBytes);
+
+            $size = strlen($normalizedBytes);
+            $derivedMeta = $this->getMediaMetaFromBytes($normalizedBytes, $type, $meta);
+        } else {
+            // Videos are accepted up to ~1GB, so they are streamed straight to
+            // the disk. Reading one into a string would allocate the whole file
+            // and exhaust memory_limit.
+            $storedMime = $mimeType;
+            $storagePath = 'medias/'.Str::uuid().'.'.$extension;
+
+            $this->streamFileToStorage($filePath, $storagePath);
+
+            $size = (int) filesize($filePath);
+            $derivedMeta = [];
+        }
 
         return $this->media()->create([
             'group_id' => $groupId ?? Str::uuid()->toString(),
@@ -134,11 +164,31 @@ trait HasMedia
             'type' => $type,
             'path' => $storagePath,
             'original_filename' => $originalFilename,
-            'mime_type' => $normalizedMime,
-            'size' => strlen($normalizedBytes),
+            'mime_type' => $storedMime,
+            'size' => $size,
             'order' => 0,
-            'meta' => array_merge($this->getMediaMetaFromBytes($normalizedBytes, $type, $meta), $meta),
+            'meta' => array_merge($derivedMeta, $meta),
         ]);
+    }
+
+    /**
+     * Copy a local file to the storage disk without buffering it in memory.
+     */
+    private function streamFileToStorage(string $filePath, string $storagePath): void
+    {
+        $stream = fopen($filePath, 'rb');
+
+        if ($stream === false) {
+            throw new \RuntimeException("Unable to open media file for streaming: {$filePath}");
+        }
+
+        try {
+            Storage::writeStream($storagePath, $stream);
+        } finally {
+            if (is_resource($stream)) {
+                fclose($stream);
+            }
+        }
     }
 
     public function clearMediaCollection(string $collection = 'default'): void

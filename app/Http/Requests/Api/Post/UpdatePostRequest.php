@@ -42,6 +42,9 @@ class UpdatePostRequest extends FormRequest
                 ),
             ],
             'media' => ['sometimes', 'array'],
+            'media.*.meta' => ['sometimes', 'nullable', 'array'],
+            'media.*.meta.cover_url' => ['sometimes', 'nullable', 'string', 'url'],
+            'media.*.meta.cover_path' => ['sometimes', 'nullable', 'string'],
             'platforms' => ['sometimes', 'array'],
             'platforms.*.id' => ['required', 'uuid', Rule::exists('post_platforms', 'id')->where('post_id', $this->route('post') instanceof Post ? $this->route('post')->id : $this->route('post'))],
             'platforms.*.content_type' => [

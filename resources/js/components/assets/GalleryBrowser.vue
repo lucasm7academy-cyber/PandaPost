@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { router, useHttp } from '@inertiajs/vue3';
 import {
+    IconCheck,
     IconCloudUpload,
     IconLoader2,
     IconPencilPlus,
     IconPhoto,
     IconSearch,
+    IconSquareCheck,
     IconTrash,
+    IconX,
 } from '@tabler/icons-vue';
 import { trans } from 'laravel-vue-i18n';
 import {
@@ -23,6 +26,7 @@ import { toast } from 'vue-sonner';
 import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue';
 import EmptyState from '@/components/EmptyState.vue';
 import ImagePreviewDialog from '@/components/ImagePreviewDialog.vue';
+import PurgedMediaPlaceholder from '@/components/PurgedMediaPlaceholder.vue';
 import GoogleDriveBrowser from '@/components/assets/GoogleDriveBrowser.vue';
 import GoogleDrivePicker from '@/components/assets/GoogleDrivePicker.vue';
 import { Button } from '@/components/ui/button';
@@ -37,6 +41,7 @@ import {
 } from '@/components/ui/tooltip';
 import debounce from '@/debounce';
 import {
+    bulkDestroy as assetsBulkDestroy,
     destroy as assetsDestroy,
     search as assetsSearch,
     storeChunked as assetsStoreChunked,
@@ -61,7 +66,13 @@ interface AssetMedia {
     mime_type: string;
     original_filename: string;
     size: number;
-    meta: { width?: number; height?: number; duration?: number } | null;
+    meta: {
+        width?: number;
+        height?: number;
+        duration?: number;
+        /** Set once the video file was deleted to reclaim disk space. */
+        purged_at?: string;
+    } | null;
     created_at: string;
 }
 
@@ -120,6 +131,18 @@ const isPicker = computed(() => props.mode === 'picker');
 const lightbox = ref<InstanceType<typeof ImagePreviewDialog> | null>(null);
 
 const handleAssetClick = (asset: AssetMedia) => {
+    // While bulk-selecting, a tap anywhere on the card marks it — a purged
+    // asset still has a database row, so it must stay deletable here.
+    if (selectionMode.value) {
+        toggleMark(asset.id);
+        return;
+    }
+
+    // The file is gone, so it can neither be attached to a new post nor previewed.
+    if (asset.meta?.purged_at) {
+        return;
+    }
+
     if (isPicker.value) {
         toggleSelect(asset);
         return;
@@ -171,7 +194,10 @@ const toggleSelect = (
                 url: asset.url,
                 type: asset.type,
                 mime_type: asset.mime_type,
-                original_filename: 'original_filename' in asset ? asset.original_filename : undefined,
+                original_filename:
+                    'original_filename' in asset
+                        ? asset.original_filename
+                        : undefined,
                 ...extra,
             },
         ];
@@ -311,6 +337,67 @@ const handleDelete = (assetId: string) => {
         url: assetsDestroy.url(assetId),
         confirmText: trans('common.confirm_modal.delete_keyword'),
     });
+};
+
+// ─── Bulk selection (standalone library only) ───────────────────
+// Kept separate from `selected`, which is the picker's "attach to post"
+// selection: here the intent is deletion, so the two must never share state.
+const selectionMode = ref(false);
+const markedIds = ref<string[]>([]);
+const bulkDeleteModal = ref<InstanceType<typeof ConfirmDeleteModal> | null>(
+    null,
+);
+
+const isMarked = (id: string) => markedIds.value.includes(id);
+
+const toggleMark = (id: string) => {
+    markedIds.value = isMarked(id)
+        ? markedIds.value.filter((markedId) => markedId !== id)
+        : [...markedIds.value, id];
+};
+
+const allMarked = computed(
+    () =>
+        uploads.value.length > 0 &&
+        markedIds.value.length === uploads.value.length,
+);
+
+const toggleMarkAll = () => {
+    markedIds.value = allMarked.value
+        ? []
+        : uploads.value.map((asset) => asset.id);
+};
+
+const enterSelectionMode = () => {
+    selectionMode.value = true;
+    markedIds.value = [];
+};
+
+const exitSelectionMode = () => {
+    selectionMode.value = false;
+    markedIds.value = [];
+};
+
+const handleBulkDelete = () => {
+    if (markedIds.value.length === 0) return;
+
+    bulkDeleteModal.value?.open({
+        url: assetsBulkDestroy.url(),
+        data: { ids: markedIds.value },
+    });
+};
+
+const onBulkDeleted = async () => {
+    const count = markedIds.value.length;
+    exitSelectionMode();
+    await loadUploadsFirstPage();
+    toast.success(trans('assets.selection.deleted', { count: String(count) }));
+};
+
+// The grid is fetched over plain XHR, so an Inertia redirect does not refresh
+// it — reload explicitly after a single delete too.
+const onAssetDeleted = async () => {
+    await loadUploadsFirstPage();
 };
 
 const createPostFromAsset = (asset: AssetMedia) => {
@@ -772,16 +859,75 @@ onUnmounted(() => {
                     </div>
                 </div>
 
-                <div class="relative mb-4">
-                    <IconSearch
-                        class="pointer-events-none absolute top-1/2 left-3.5 size-5 -translate-y-1/2 text-foreground/60"
-                    />
-                    <Input
-                        v-model="uploadsSearch"
-                        type="search"
-                        :placeholder="trans('assets.search_placeholder')"
-                        class="h-12 pl-11 text-base"
-                    />
+                <div
+                    class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center"
+                >
+                    <div class="relative flex-1">
+                        <IconSearch
+                            class="pointer-events-none absolute top-1/2 left-3.5 size-5 -translate-y-1/2 text-foreground/60"
+                        />
+                        <Input
+                            v-model="uploadsSearch"
+                            type="search"
+                            :placeholder="trans('assets.search_placeholder')"
+                            class="h-12 pl-11 text-base"
+                        />
+                    </div>
+
+                    <Button
+                        v-if="!isPicker && !selectionMode"
+                        variant="outline"
+                        class="h-12 shrink-0"
+                        dusk="enter-selection-mode"
+                        @click="enterSelectionMode"
+                    >
+                        <IconSquareCheck class="size-4" />
+                        {{ trans('assets.selection.enter') }}
+                    </Button>
+
+                    <Button
+                        v-else-if="!isPicker"
+                        variant="outline"
+                        class="h-12 shrink-0"
+                        dusk="exit-selection-mode"
+                        @click="exitSelectionMode"
+                    >
+                        <IconX class="size-4" />
+                        {{ trans('assets.selection.exit') }}
+                    </Button>
+                </div>
+
+                <div
+                    v-if="!isPicker && selectionMode"
+                    class="mb-4 flex flex-wrap items-center gap-2 rounded-xl border-2 border-foreground bg-amber-100 p-2 shadow-2xs"
+                >
+                    <Button variant="outline" size="sm" @click="toggleMarkAll">
+                        {{
+                            allMarked
+                                ? trans('assets.selection.clear')
+                                : trans('assets.selection.select_all')
+                        }}
+                    </Button>
+
+                    <span class="text-sm font-semibold text-foreground">
+                        {{
+                            trans('assets.selection.count', {
+                                count: String(markedIds.length),
+                            })
+                        }}
+                    </span>
+
+                    <Button
+                        variant="destructive"
+                        size="sm"
+                        class="ml-auto"
+                        :disabled="markedIds.length === 0"
+                        dusk="bulk-delete"
+                        @click="handleBulkDelete"
+                    >
+                        <IconTrash class="size-4" />
+                        {{ trans('assets.selection.delete') }}
+                    </Button>
                 </div>
 
                 <div
@@ -811,18 +957,24 @@ onUnmounted(() => {
                         :key="asset.id"
                         class="group relative overflow-hidden rounded-xl border-2 border-foreground bg-muted shadow-2xs transition-all hover:-translate-y-0.5 hover:shadow-md"
                         :class="[
-                            isPicker || asset.type !== 'video'
+                            isPicker || selectionMode || asset.type !== 'video'
                                 ? 'cursor-pointer'
                                 : '',
-                            isPicker && isSelected(asset.id)
+                            (isPicker && isSelected(asset.id)) ||
+                            (selectionMode && isMarked(asset.id))
                                 ? 'ring-2 ring-primary ring-offset-2 ring-offset-background'
                                 : '',
                         ]"
+                        :dusk="`asset-${asset.id}`"
                         @click="handleAssetClick(asset)"
                     >
                         <div class="aspect-square">
+                            <PurgedMediaPlaceholder
+                                v-if="asset.meta?.purged_at"
+                                :filename="asset.original_filename"
+                            />
                             <video
-                                v-if="asset.type === 'video'"
+                                v-else-if="asset.type === 'video'"
                                 :src="asset.url"
                                 class="size-full object-cover"
                                 muted
@@ -845,7 +997,23 @@ onUnmounted(() => {
                         </div>
 
                         <div
-                            v-if="!isPicker"
+                            v-if="selectionMode"
+                            class="absolute top-2 left-2 inline-flex size-6 items-center justify-center rounded-md border-2 border-foreground shadow-2xs"
+                            :class="
+                                isMarked(asset.id)
+                                    ? 'bg-primary text-primary-foreground'
+                                    : 'bg-white/90'
+                            "
+                        >
+                            <IconCheck
+                                v-if="isMarked(asset.id)"
+                                class="size-4"
+                                stroke-width="3"
+                            />
+                        </div>
+
+                        <div
+                            v-if="!isPicker && !selectionMode"
                             class="absolute inset-0 flex flex-col justify-between bg-foreground/60 p-2 opacity-0 transition-opacity group-hover:opacity-100"
                         >
                             <div class="flex justify-end gap-1.5">
@@ -927,6 +1095,20 @@ onUnmounted(() => {
             :description="trans('assets.delete.description')"
             :action="trans('assets.delete.confirm')"
             :cancel="trans('assets.delete.cancel')"
+            @deleted="onAssetDeleted"
+        />
+
+        <ConfirmDeleteModal
+            ref="bulkDeleteModal"
+            :title="
+                trans('assets.bulk_delete.title', {
+                    count: String(markedIds.length),
+                })
+            "
+            :description="trans('assets.bulk_delete.description')"
+            :action="trans('assets.bulk_delete.confirm')"
+            :cancel="trans('assets.bulk_delete.cancel')"
+            @deleted="onBulkDeleted"
         />
 
         <ImagePreviewDialog ref="lightbox" />

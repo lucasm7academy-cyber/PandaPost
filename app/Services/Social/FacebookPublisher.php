@@ -202,6 +202,11 @@ class FacebookPublisher
             'access_token' => $accessToken,
         ];
 
+        $coverUrl = data_get($media->meta, 'cover_url');
+        if ($coverUrl) {
+            $payload['thumb'] = $coverUrl;
+        }
+
         if ($content !== null && $content !== '') {
             $payload['description'] = $content;
         }

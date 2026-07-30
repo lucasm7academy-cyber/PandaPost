@@ -16,7 +16,7 @@
             }
         </style>
 
-        <title data-inertia>{{ config('app.name', 'PandaPost.com.br') }}</title>
+        <title data-inertia>{{ config('app.name', 'PandaPost') }}</title>
 
         <link rel="icon" type="image/png" href="/images/trypost/icon.png">
         <link rel="apple-touch-icon" href="/images/trypost/icon.png">

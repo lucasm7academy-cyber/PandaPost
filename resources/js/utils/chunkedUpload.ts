@@ -49,7 +49,10 @@ export const uploadChunked = async (options: ChunkedUploadOptions): Promise<Chun
             const headers: Record<string, string> = {
                 'Content-Type': 'application/octet-stream',
                 'Content-Range': `bytes ${start}-${end - 1}/${totalSize}`,
-                'X-File-Name': file.name,
+                // Header values cannot carry UTF-8: the browser would serialize
+                // `ã` as the latin1 byte 0xE3 and Postgres rejects it. Encoding
+                // keeps the header pure ASCII; the backend decodes it.
+                'X-File-Name': encodeURIComponent(file.name),
                 'X-CSRF-TOKEN': csrfToken,
                 'X-Requested-With': 'XMLHttpRequest',
                 Accept: 'application/json',

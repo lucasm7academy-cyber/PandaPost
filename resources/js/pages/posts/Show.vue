@@ -7,6 +7,7 @@ import { computed, ref } from 'vue';
 import ImagePreviewDialog from '@/components/ImagePreviewDialog.vue';
 import LabelBadge from '@/components/labels/LabelBadge.vue';
 import PostPlatformMetrics from '@/components/posts/PostPlatformMetrics.vue';
+import PurgedMediaPlaceholder from '@/components/PurgedMediaPlaceholder.vue';
 import { Avatar } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -26,6 +27,8 @@ interface MediaItem {
     type?: string;
     mime_type?: string;
     original_filename?: string;
+    /** Set once the video file was deleted to reclaim disk space. */
+    purged?: boolean;
 }
 
 interface SocialAccount {
@@ -169,11 +172,21 @@ usePostEcho(props.post.id, '.post.platform.status.updated', () => {
                                     v-for="(item, i) in post.media"
                                     :key="item.id"
                                     type="button"
-                                    class="group relative aspect-square cursor-zoom-in overflow-hidden rounded-xl border-2 border-foreground bg-muted shadow-2xs transition-all focus:outline-none focus:ring-2 focus:ring-foreground focus:ring-offset-2"
+                                    :disabled="item.purged"
+                                    :class="[
+                                        'group relative aspect-square overflow-hidden rounded-xl border-2 border-foreground bg-muted shadow-2xs transition-all focus:outline-none focus:ring-2 focus:ring-foreground focus:ring-offset-2',
+                                        item.purged
+                                            ? 'cursor-default'
+                                            : 'cursor-zoom-in',
+                                    ]"
                                     @click="openLightbox(i)"
                                 >
+                                    <PurgedMediaPlaceholder
+                                        v-if="item.purged"
+                                        :filename="item.original_filename"
+                                    />
                                     <video
-                                        v-if="isVideoItem(item)"
+                                        v-else-if="isVideoItem(item)"
                                         :src="item.url"
                                         class="h-full w-full object-cover"
                                         muted

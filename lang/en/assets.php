@@ -32,6 +32,23 @@ return [
         'cancel' => 'Cancel',
     ],
 
+    'selection' => [
+        'enter' => 'Select',
+        'exit' => 'Done',
+        'select_all' => 'Select all',
+        'clear' => 'Clear',
+        'count' => ':count selected',
+        'delete' => 'Delete selected',
+        'deleted' => ':count asset(s) deleted',
+    ],
+
+    'bulk_delete' => [
+        'title' => 'Delete :count asset(s)',
+        'description' => 'The selected files will be permanently removed from your library and from the server disk.',
+        'confirm' => 'Delete all',
+        'cancel' => 'Cancel',
+    ],
+
     'unsplash' => [
         'search_placeholder' => 'Search free photos...',
         'no_results' => 'No photos found',

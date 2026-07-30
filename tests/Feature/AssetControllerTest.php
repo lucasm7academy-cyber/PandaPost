@@ -132,6 +132,56 @@ test('cannot delete asset from another workspace', function () {
     $response->assertForbidden();
 });
 
+test('can bulk delete assets', function () {
+    $first = $this->workspace->addMedia(UploadedFile::fake()->image('one.jpg'), 'assets');
+    $second = $this->workspace->addMedia(UploadedFile::fake()->image('two.jpg'), 'assets');
+    $kept = $this->workspace->addMedia(UploadedFile::fake()->image('three.jpg'), 'assets');
+
+    $response = $this->actingAs($this->user)
+        ->delete(route('app.assets.bulk-destroy'), [
+            'ids' => [$first->id, $second->id],
+        ]);
+
+    $response->assertRedirect();
+
+    expect(Media::find($first->id))->toBeNull();
+    expect(Media::find($second->id))->toBeNull();
+    expect(Media::find($kept->id))->not->toBeNull();
+
+    Storage::assertMissing($first->path);
+    Storage::assertMissing($second->path);
+    Storage::assertExists($kept->path);
+});
+
+test('bulk delete ignores assets from another workspace', function () {
+    $otherWorkspace = Workspace::factory()->create([
+        'account_id' => $this->account->id,
+        'user_id' => $this->user->id,
+    ]);
+
+    $mine = $this->workspace->addMedia(UploadedFile::fake()->image('mine.jpg'), 'assets');
+    $theirs = $otherWorkspace->addMedia(UploadedFile::fake()->image('theirs.jpg'), 'assets');
+
+    $response = $this->actingAs($this->user)
+        ->delete(route('app.assets.bulk-destroy'), [
+            'ids' => [$mine->id, $theirs->id],
+        ]);
+
+    $response->assertRedirect();
+
+    expect(Media::find($mine->id))->toBeNull();
+    expect(Media::find($theirs->id))->not->toBeNull();
+    Storage::assertExists($theirs->path);
+});
+
+test('bulk delete requires at least one id', function () {
+    $response = $this->actingAs($this->user)
+        ->deleteJson(route('app.assets.bulk-destroy'), ['ids' => []]);
+
+    $response->assertUnprocessable();
+    $response->assertJsonValidationErrors('ids');
+});
+
 test('can store asset from url', function () {
     $fakeImage = UploadedFile::fake()->image('photo.jpg', 800, 600);
     $imageContent = file_get_contents($fakeImage->getPathname());
@@ -206,6 +256,103 @@ test('chunked upload reports progress on intermediate chunks', function () {
     $response->assertSuccessful();
     $response->assertJson(['done' => false, 'progress' => 50]);
     expect(Media::count())->toBe(0);
+});
+
+test('chunked video upload finalizes without loading the whole file into memory', function () {
+    // Synthetic MP4: the `ftyp` box makes mime_content_type report video/mp4,
+    // so the upload takes the video branch instead of image normalization.
+    $mp4Header = "\x00\x00\x00\x20ftypisom\x00\x00\x02\x00isomiso2avc1mp41";
+    $chunkSize = 5 * 1024 * 1024;
+    $totalSize = 12 * 1024 * 1024;
+
+    $sendChunk = function (int $start, int $end) use ($mp4Header, $totalSize) {
+        $length = $end - $start + 1;
+        $body = $start === 0
+            ? $mp4Header.str_repeat("\x00", $length - strlen($mp4Header))
+            : str_repeat("\x00", $length);
+
+        return $this->actingAs($this->user)->call(
+            'POST',
+            route('app.assets.store-chunked'),
+            [], [], [],
+            [
+                'HTTP_CONTENT_RANGE' => "bytes {$start}-{$end}/{$totalSize}",
+                'HTTP_X_FILE_NAME' => 'big-video.mp4',
+                'HTTP_ACCEPT' => 'application/json',
+                'CONTENT_TYPE' => 'application/octet-stream',
+            ],
+            $body,
+        );
+    };
+
+    for ($start = 0; $start + $chunkSize < $totalSize; $start += $chunkSize) {
+        $sendChunk($start, $start + $chunkSize - 1)->assertJson(['done' => false]);
+    }
+
+    // Measure only the finalizing request — that is where the assembled file is
+    // read off disk and handed to the storage disk.
+    gc_collect_cycles();
+    memory_reset_peak_usage();
+    $baseline = memory_get_usage();
+
+    $response = $sendChunk($start, $totalSize - 1);
+
+    $peakGrowth = memory_get_peak_usage() - $baseline;
+
+    $response->assertSuccessful();
+    $response->assertJson(['done' => true, 'type' => 'video']);
+    expect($response->json('size'))->toBe($totalSize);
+
+    // Streaming keeps this near the size of the final chunk. Reading the whole
+    // file into a string pushes it past the full size, which is what exhausts
+    // memory_limit for the ~1GB videos the app accepts in production.
+    expect($peakGrowth)->toBeLessThan($totalSize);
+});
+
+test('chunked upload stores an accented filename sent as raw latin1 bytes', function () {
+    // Browsers serialize non-ASCII header values as latin1 (the low byte of each
+    // UTF-16 code unit), so `ã` arrives as 0xE3 instead of the UTF-8 0xC3 0xA3.
+    // Postgres rejects those bytes with SQLSTATE 22021 on insert.
+    $content = file_get_contents(__DIR__.'/../fixtures/1x1.png');
+    $size = strlen($content);
+
+    $response = $this->actingAs($this->user)->call(
+        'POST',
+        route('app.assets.store-chunked'),
+        [], [], [],
+        [
+            'HTTP_CONTENT_RANGE' => 'bytes 0-'.($size - 1).'/'.$size,
+            'HTTP_X_FILE_NAME' => mb_convert_encoding('eu não acredito.png', 'ISO-8859-1', 'UTF-8'),
+            'HTTP_ACCEPT' => 'application/json',
+            'CONTENT_TYPE' => 'application/octet-stream',
+        ],
+        $content,
+    );
+
+    $response->assertSuccessful();
+    $response->assertJsonPath('original_filename', 'eu não acredito.png');
+});
+
+test('chunked upload stores an accented filename sent percent-encoded', function () {
+    // The client percent-encodes the name so the header stays pure ASCII.
+    $content = file_get_contents(__DIR__.'/../fixtures/1x1.png');
+    $size = strlen($content);
+
+    $response = $this->actingAs($this->user)->call(
+        'POST',
+        route('app.assets.store-chunked'),
+        [], [], [],
+        [
+            'HTTP_CONTENT_RANGE' => 'bytes 0-'.($size - 1).'/'.$size,
+            'HTTP_X_FILE_NAME' => rawurlencode('eu não acredito.png'),
+            'HTTP_ACCEPT' => 'application/json',
+            'CONTENT_TYPE' => 'application/octet-stream',
+        ],
+        $content,
+    );
+
+    $response->assertSuccessful();
+    $response->assertJsonPath('original_filename', 'eu não acredito.png');
 });
 
 test('chunked upload rejects unsupported file extension', function () {

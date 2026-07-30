@@ -2,14 +2,15 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\App\AdminController;
 use App\Http\Controllers\App\AnalyticsController;
 use App\Http\Controllers\App\ApiKeyController;
 use App\Http\Controllers\App\AssetController;
 use App\Http\Controllers\App\BillingController;
 use App\Http\Controllers\App\BulkScheduleController;
+use App\Http\Controllers\App\GiphyController;
 use App\Http\Controllers\App\GoogleDriveFolderController;
 use App\Http\Controllers\App\GoogleDrivePickerController;
-use App\Http\Controllers\App\GiphyController;
 use App\Http\Controllers\App\NotificationController;
 use App\Http\Controllers\App\PostAiCreateController;
 use App\Http\Controllers\App\PostAiGenerateController;
@@ -217,6 +218,8 @@ Route::middleware(['auth', EnsureAccountReady::class])->group(function () {
     Route::post('assets', [AssetController::class, 'store'])->name('app.assets.store');
     Route::post('assets/chunked', [AssetController::class, 'storeChunked'])->name('app.assets.store-chunked');
     Route::post('assets/from-url', [AssetController::class, 'storeFromUrl'])->name('app.assets.store-from-url');
+    // Must stay above `assets/{media}` so `bulk` is not matched as an id.
+    Route::delete('assets/bulk', [AssetController::class, 'bulkDestroy'])->name('app.assets.bulk-destroy');
     Route::delete('assets/{media}', [AssetController::class, 'destroy'])->name('app.assets.destroy');
     Route::get('assets/unsplash/search', [UnsplashController::class, 'search'])->name('app.assets.unsplash.search');
     Route::get('assets/unsplash/trending', [UnsplashController::class, 'trending'])->name('app.assets.unsplash.trending');
@@ -291,7 +294,7 @@ Route::middleware(['auth'])->group(function () {
 });
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
-    Route::get('/', [\App\Http\Controllers\App\AdminController::class, 'index'])->name('app.admin.index');
-    Route::post('/trial-days/{account}', [\App\Http\Controllers\App\AdminController::class, 'addTrialDays'])->name('app.admin.add-trial-days');
-    Route::post('/change-plan/{account}', [\App\Http\Controllers\App\AdminController::class, 'changePlan'])->name('app.admin.change-plan');
+    Route::get('/', [AdminController::class, 'index'])->name('app.admin.index');
+    Route::post('/trial-days/{account}', [AdminController::class, 'addTrialDays'])->name('app.admin.add-trial-days');
+    Route::post('/change-plan/{account}', [AdminController::class, 'changePlan'])->name('app.admin.change-plan');
 });

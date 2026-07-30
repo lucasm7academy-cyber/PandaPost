@@ -49,6 +49,8 @@ class UpdatePostRequest extends FormRequest
             'media.*.original_filename' => ['sometimes', 'nullable', 'string', 'max:500'],
             'media.*.size' => ['sometimes', 'nullable', 'integer'],
             'media.*.meta' => ['sometimes', 'nullable', 'array'],
+            'media.*.meta.cover_url' => ['sometimes', 'nullable', 'string', 'url'],
+            'media.*.meta.cover_path' => ['sometimes', 'nullable', 'string'],
             'scheduled_at' => [
                 'sometimes',
                 'nullable',

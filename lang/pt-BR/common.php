@@ -16,6 +16,11 @@ return [
         'uploading' => 'Enviando...',
         'remove' => 'Remover foto',
         'hint' => 'Recomendado: imagem quadrada, máximo 2 MB.',
+        'failed' => 'Falha no envio. Tente novamente.',
+    ],
+
+    'purged_media' => [
+        'label' => 'Vídeo publicado e excluído',
     ],
 
     'timezone' => [

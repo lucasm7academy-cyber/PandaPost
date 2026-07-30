@@ -166,6 +166,44 @@ test('add media detects video type', function () {
     expect($media->type->value)->toBe('video');
 });
 
+test('add media streams video to storage without buffering it in memory', function () {
+    $workspace = Workspace::factory()->create();
+
+    // A real 12MB file is required: UploadedFile::fake()->create() only fakes
+    // getSize() and leaves the file on disk empty. The `ftyp` box makes the MIME
+    // guesser report video/mp4.
+    $totalSize = 12 * 1024 * 1024;
+    $path = tempnam(sys_get_temp_dir(), 'vid').'.mp4';
+    $handle = fopen($path, 'wb');
+    fwrite($handle, "\x00\x00\x00\x20ftypisom\x00\x00\x02\x00isomiso2avc1mp41");
+    $megabyte = str_repeat("\x00", 1024 * 1024);
+    while (ftell($handle) < $totalSize) {
+        fwrite($handle, substr($megabyte, 0, min(strlen($megabyte), $totalSize - ftell($handle))));
+    }
+    fclose($handle);
+    unset($megabyte);
+
+    $file = new UploadedFile($path, 'big-video.mp4', 'video/mp4', null, true);
+
+    gc_collect_cycles();
+    memory_reset_peak_usage();
+    $baseline = memory_get_usage();
+
+    $media = $workspace->addMedia($file, 'assets');
+
+    $peakGrowth = memory_get_peak_usage() - $baseline;
+
+    expect($media->type->value)->toBe('video');
+    expect($media->size)->toBe($totalSize);
+    Storage::assertExists($media->path);
+
+    // Buffering the video into a string pushes this past the full file size,
+    // which is what exhausts memory_limit for the ~1GB videos we accept.
+    expect($peakGrowth)->toBeLessThan($totalSize);
+
+    unlink($path);
+});
+
 test('add media throws on unsupported MIME type', function () {
     $workspace = Workspace::factory()->create();
     $file = UploadedFile::fake()->create('document.pdf', 1000, 'application/pdf');

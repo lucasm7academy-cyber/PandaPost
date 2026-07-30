@@ -4,6 +4,7 @@ import { IconTrash } from '@tabler/icons-vue';
 import { trans } from 'laravel-vue-i18n';
 import { ref } from 'vue';
 
+import InputError from '@/components/InputError.vue';
 import { Avatar } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -33,6 +34,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const fileInput = ref<HTMLInputElement | null>(null);
 const uploading = ref(false);
+const uploadError = ref<string | null>(null);
 
 const sizeClasses = {
     sm: 'size-16',
@@ -64,12 +66,17 @@ const handleFileChange = (event: Event) => {
     }
 
     uploading.value = true;
+    uploadError.value = null;
 
     router.post(
         props.uploadUrl,
         { photo: file },
         {
             forceFormData: true,
+            onError: (errors) => {
+                uploadError.value =
+                    errors.photo ?? trans('common.photo_upload.failed');
+            },
             onFinish: () => {
                 uploading.value = false;
                 if (fileInput.value) {
@@ -145,6 +152,7 @@ const handleDelete = () => {
             <p class="text-xs text-muted-foreground">
                 {{ $t('common.photo_upload.hint') }}
             </p>
+            <InputError :message="uploadError ?? undefined" />
         </div>
     </div>
 </template>

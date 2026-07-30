@@ -46,6 +46,32 @@ beforeEach(function () {
     ]);
 });
 
+test('update post request allows cover url and cover path in media meta', function () {
+    $mediaWithCover = [
+        [
+            'id' => 'test-media-video',
+            'path' => 'media/2026-01/test-video.mp4',
+            'url' => 'https://example.com/media/2026-01/test-video.mp4',
+            'type' => 'video',
+            'mime_type' => 'video/mp4',
+            'original_filename' => 'test-video.mp4',
+            'meta' => [
+                'cover_url' => 'https://example.com/media/covers/cover.jpg',
+                'cover_path' => 'media/covers/cover.jpg',
+            ],
+        ],
+    ];
+
+    $response = $this->actingAs($this->user)
+        ->put(route('app.posts.update', $this->post), [
+            'status' => Status::Draft->value,
+            'media' => $mediaWithCover,
+        ]);
+
+    $response->assertSessionHasNoErrors();
+    expect($this->post->fresh()->mediaItems->first()->meta)->toHaveKey('cover_url', 'https://example.com/media/covers/cover.jpg');
+});
+
 test('publishing a tiktok post without privacy_level is rejected', function () {
     $response = $this->actingAs($this->user)
         ->put(route('app.posts.update', $this->post), [

@@ -258,6 +258,57 @@ test('chunked upload reports progress on intermediate chunks', function () {
     expect(Media::count())->toBe(0);
 });
 
+test('chunked video upload finalizes without loading the whole file into memory', function () {
+    // Synthetic MP4: the `ftyp` box makes mime_content_type report video/mp4,
+    // so the upload takes the video branch instead of image normalization.
+    $mp4Header = "\x00\x00\x00\x20ftypisom\x00\x00\x02\x00isomiso2avc1mp41";
+    $chunkSize = 5 * 1024 * 1024;
+    $totalSize = 12 * 1024 * 1024;
+
+    $sendChunk = function (int $start, int $end) use ($mp4Header, $totalSize) {
+        $length = $end - $start + 1;
+        $body = $start === 0
+            ? $mp4Header.str_repeat("\x00", $length - strlen($mp4Header))
+            : str_repeat("\x00", $length);
+
+        return $this->actingAs($this->user)->call(
+            'POST',
+            route('app.assets.store-chunked'),
+            [], [], [],
+            [
+                'HTTP_CONTENT_RANGE' => "bytes {$start}-{$end}/{$totalSize}",
+                'HTTP_X_FILE_NAME' => 'big-video.mp4',
+                'HTTP_ACCEPT' => 'application/json',
+                'CONTENT_TYPE' => 'application/octet-stream',
+            ],
+            $body,
+        );
+    };
+
+    for ($start = 0; $start + $chunkSize < $totalSize; $start += $chunkSize) {
+        $sendChunk($start, $start + $chunkSize - 1)->assertJson(['done' => false]);
+    }
+
+    // Measure only the finalizing request — that is where the assembled file is
+    // read off disk and handed to the storage disk.
+    gc_collect_cycles();
+    memory_reset_peak_usage();
+    $baseline = memory_get_usage();
+
+    $response = $sendChunk($start, $totalSize - 1);
+
+    $peakGrowth = memory_get_peak_usage() - $baseline;
+
+    $response->assertSuccessful();
+    $response->assertJson(['done' => true, 'type' => 'video']);
+    expect($response->json('size'))->toBe($totalSize);
+
+    // Streaming keeps this near the size of the final chunk. Reading the whole
+    // file into a string pushes it past the full size, which is what exhausts
+    // memory_limit for the ~1GB videos the app accepts in production.
+    expect($peakGrowth)->toBeLessThan($totalSize);
+});
+
 test('chunked upload rejects unsupported file extension', function () {
     $response = $this->actingAs($this->user)->call(
         'POST',
